@@ -10,40 +10,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Predio {
+  id                String   @id @default(cuid())
+  nome              String
+  endereco          String
+  cnpj              String?  @unique
+  quantidadeUnidades Int
+  dataFundacao      DateTime?
+  nomeSindico       String?
+  telefoneSindico   String?
+  emailSindico      String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   
   // Relacionamentos
-  posts     Post[]
-  comments  Comment[]
+  unidades          Unidade[]
+  manutencoes       Manutencao[]
+  comunicados       Comunicado[]
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model Unidade {
+  id            String   @id @default(cuid())
+  numero        String
+  tipo          String   @default("apartamento") // apartamento, cobertura, loja, garagem
+  metragem      Float?
+  fracaoIdeal   Float?
+  status        String   @default("ocupado") // ocupado, vazio
+  valorTaxa     Float    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
   // Relacionamentos
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
-  comments  Comment[]
+  predio        Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  predioId      String
+  responsaveis  Responsavel[]
+  pagamentos    Pagamento[]
+  
+  @@unique([predioId, numero])
 }
 
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  createdAt DateTime @default(now())
+model Responsavel {
+  id            String   @id @default(cuid())
+  nome          String
+  cpfCnpj       String
+  telefone      String?
+  whatsapp      String?
+  email         String?
+  tipo          String   @default("proprietario") // proprietario, inquilino
+  dataInicio    DateTime @default(now())
+  dataFim       DateTime?
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
   // Relacionamentos
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  String
-  post      Post     @relation(fields: [postId], references: [id])
-  postId    String
+  unidade       Unidade  @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  unidadeId     String
+}
+
+model Manutencao {
+  id            String   @id @default(cuid())
+  nome          String
+  descricao     String?
+  valorTotal    Float
+  numeroParcelas Int
+  valorParcela  Float
+  dataInicio    DateTime
+  dataFim       DateTime?
+  status        String   @default("ativa") // ativa, concluida, cancelada
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relacionamentos
+  predio        Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  predioId      String
+  pagamentos    Pagamento[]
+}
+
+model Pagamento {
+  id            String   @id @default(cuid())
+  tipo          String   // "taxa_mensal", "manutencao"
+  valor         Float
+  dataVencimento DateTime
+  dataPagamento DateTime?
+  status        String   @default("pendente") // pendente, pago, atrasado
+  numeroParcela Int?     // para manutenções
+  observacao    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relacionamentos
+  unidade       Unidade  @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  unidadeId     String
+  manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
+  manutencaoId  String?
+}
+
+model Comunicado {
+  id            String   @id @default(cuid())
+  titulo        String
+  conteudo      String
+  dataPublicacao DateTime @default(now())
+  ativo         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relacionamentos
+  predio        Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  predioId      String
 }
