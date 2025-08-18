@@ -14,7 +14,7 @@ C:.
 ¦   ¦       ¦   
 ¦   ¦       +---[id]
 ¦   ¦           ¦   page.tsx
-¦   ¦           ¦   unidade.ts
+¦   ¦           ¦   route.ts
 ¦   ¦           ¦   
 ¦   ¦           +---responsaveis
 ¦   ¦           ¦       route.ts
@@ -26,9 +26,14 @@ C:.
 ¦       ¦   page.tsx
 ¦       ¦   
 ¦       +---[id]
+¦           ¦   page.tsx
+¦           ¦   route.ts
+¦           ¦   
 ¦           +---financeiro
 ¦           +---manutencoes
 ¦           +---unidades
+¦                   route.ts
+¦                   
 +---components
 ¦   +---ui
 +---lib

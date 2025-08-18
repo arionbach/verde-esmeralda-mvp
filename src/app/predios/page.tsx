@@ -1,3 +1,4 @@
+// src/app/predios/page.tsx - ENCODING E LINKS CORRIGIDOS
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -29,7 +30,7 @@ export default function PrediosPage() {
       const data = await response.json()
       setPredios(data)
     } catch (error) {
-      console.error('Erro ao carregar predios:', error)
+      console.error('Erro ao carregar prédios:', error)
     } finally {
       setLoading(false)
     }
@@ -49,17 +50,17 @@ export default function PrediosPage() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <Link href="/" className="text-verde-esmeralda-600 hover:text-verde-esmeralda-800 mb-2 inline-block">
-              Voltar
+              ← Voltar
             </Link>
             <h1 className="text-3xl font-bold text-verde-esmeralda-800">
-              Gestao de Predios
+              Gestão de Prédios
             </h1>
           </div>
           <button
             onClick={() => setShowForm(true)}
             className="bg-verde-esmeralda-600 text-white px-6 py-2 rounded-lg hover:bg-verde-esmeralda-700 transition-colors"
           >
-            + Novo Predio
+            + Novo Prédio
           </button>
         </div>
 
@@ -67,16 +68,16 @@ export default function PrediosPage() {
           <div className="bg-white rounded-lg shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">🏢</div>
             <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              Nenhum predio cadastrado
+              Nenhum prédio cadastrado
             </h2>
             <p className="text-gray-500 mb-6">
-              Comece cadastrando seu primeiro condominio
+              Comece cadastrando seu primeiro condomínio
             </p>
             <button
               onClick={() => setShowForm(true)}
               className="bg-verde-esmeralda-600 text-white px-6 py-2 rounded-lg hover:bg-verde-esmeralda-700 transition-colors"
             >
-              Cadastrar Primeiro Predio
+              Cadastrar Primeiro Prédio
             </button>
           </div>
         ) : (
@@ -99,12 +100,13 @@ export default function PrediosPage() {
                   </div>
                   {predio.nomeSindico && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">Sindico:</span>
+                      <span className="text-gray-500">Síndico:</span>
                       <span className="font-semibold">{predio.nomeSindico}</span>
                     </div>
                   )}
                 </div>
                 
+                {/* 🔧 LINK CORRIGIDO */}
                 <Link
                   href={`/predios/${predio.id}`}
                   className="block w-full bg-verde-esmeralda-600 text-white text-center py-2 rounded-lg hover:bg-verde-esmeralda-700 transition-colors"
@@ -159,11 +161,11 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
       if (response.ok) {
         onSuccess()
       } else {
-        alert('Erro ao cadastrar predio')
+        alert('Erro ao cadastrar prédio')
       }
     } catch (error) {
       console.error('Erro:', error)
-      alert('Erro ao cadastrar predio')
+      alert('Erro ao cadastrar prédio')
     } finally {
       setLoading(false)
     }
@@ -175,7 +177,7 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-verde-esmeralda-800">
-              Novo Predio
+              Novo Prédio
             </h2>
             <button
               onClick={onClose}
@@ -189,7 +191,7 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nome do Condominio *
+                  Nome do Condomínio *
                 </label>
                 <input
                   type="text"
@@ -219,7 +221,7 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Endereco Completo *
+                Endereço Completo *
               </label>
               <input
                 type="text"
@@ -227,7 +229,7 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
                 value={formData.endereco}
                 onChange={(e) => setFormData({...formData, endereco: e.target.value})}
                 className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500 focus:border-transparent"
-                placeholder="Ex: Rua das Flores, 123 - Centro - Sao Paulo/SP"
+                placeholder="Ex: Rua das Flores, 123 - Centro - São Paulo/SP"
               />
             </div>
 
@@ -247,7 +249,7 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Data de Fundacao
+                  Data de Fundação
                 </label>
                 <input
                   type="date"
@@ -260,13 +262,13 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
 
             <div className="border-t pt-4">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                Dados do Sindico
+                Dados do Síndico
               </h3>
               
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nome do Sindico
+                    Nome do Síndico
                   </label>
                   <input
                     type="text"
@@ -318,7 +320,7 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
                 disabled={loading}
                 className="flex-1 py-3 bg-verde-esmeralda-600 text-white rounded-lg hover:bg-verde-esmeralda-700 transition-colors disabled:opacity-50"
               >
-                {loading ? 'Salvando...' : 'Salvar Predio'}
+                {loading ? 'Salvando...' : 'Salvar Prédio'}
               </button>
             </div>
           </form>

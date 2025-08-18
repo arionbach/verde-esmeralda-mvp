@@ -4,10 +4,10 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   _req: NextRequest,
-  ctx: { params: Promise<{ id: string }> } // 👈 params é Promise
+  ctx: { params: Promise<{ id: string }> } // 👈 params agora é Promise
 ) {
   try {
-    const { id } = await ctx.params; // 👈 aguarda antes de usar
+    const { id } = await ctx.params; // 👈 await antes de usar
 
     const predio = await prisma.predio.findUnique({
       where: { id },
