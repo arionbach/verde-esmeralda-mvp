@@ -106,7 +106,7 @@ export default function PrediosPage() {
                 </div>
                 
                 <Link
-                  href={/predios/}
+                  href={`/predios/${predio.id}`}
                   className="block w-full bg-verde-esmeralda-600 text-white text-center py-2 rounded-lg hover:bg-verde-esmeralda-700 transition-colors"
                 >
                   Gerenciar

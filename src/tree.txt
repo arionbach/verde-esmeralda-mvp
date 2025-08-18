@@ -1,0 +1,36 @@
+Listagem de caminhos de pasta para o volume Windows-SSD
+O número de série do volume é 2C43-FBB3
+C:.
+¦   tree.txt
+¦   
++---app
+¦   ¦   globals.css
+¦   ¦   layout.tsx
+¦   ¦   page.tsx
+¦   ¦   
+¦   +---api
+¦   ¦   +---predios
+¦   ¦       ¦   route.ts
+¦   ¦       ¦   
+¦   ¦       +---[id]
+¦   ¦           ¦   page.tsx
+¦   ¦           ¦   unidade.ts
+¦   ¦           ¦   
+¦   ¦           +---responsaveis
+¦   ¦           ¦       route.ts
+¦   ¦           ¦       
+¦   ¦           +---unidades
+¦   ¦                   route.ts
+¦   ¦                   
+¦   +---predios
+¦       ¦   page.tsx
+¦       ¦   
+¦       +---[id]
+¦           +---financeiro
+¦           +---manutencoes
+¦           +---unidades
++---components
+¦   +---ui
++---lib
+        prisma.ts
+        
