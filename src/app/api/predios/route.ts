@@ -18,7 +18,7 @@ export async function GET() {
     
     return NextResponse.json(predios)
   } catch (error) {
-    console.error('Erro ao buscar prédios:', error)
+    console.error('Erro ao buscar predios:', error)
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(predio, { status: 201 })
   } catch (error) {
-    console.error('Erro ao criar prédio:', error)
+    console.error('Erro ao criar predio:', error)
     return NextResponse.json(
-      { error: 'Erro ao criar prédio' },
+      { error: 'Erro ao criar predio' },
       { status: 500 }
     )
   }
