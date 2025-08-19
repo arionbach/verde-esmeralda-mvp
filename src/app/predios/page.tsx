@@ -1,4 +1,4 @@
-// src/app/predios/page.tsx - ENCODING E LINKS CORRIGIDOS
+// src/app/predios/page.tsx - VERSÃO CORRIGIDA E FUNCIONAL
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -19,6 +19,7 @@ export default function PrediosPage() {
   const [predios, setPredios] = useState<Predio[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchPredios()
@@ -26,11 +27,22 @@ export default function PrediosPage() {
 
   const fetchPredios = async () => {
     try {
+      setLoading(true)
+      setError(null)
+      
       const response = await fetch('/api/predios')
+      
+      if (!response.ok) {
+        throw new Error('Erro ao carregar prédios')
+      }
+      
       const data = await response.json()
-      setPredios(data)
+      console.log('Dados recebidos:', data) // Debug
+      
+      setPredios(Array.isArray(data) ? data : [])
     } catch (error) {
-      console.error('Erro ao carregar prédios:', error)
+      console.error('Erro ao carregar predios:', error)
+      setError('Erro ao carregar prédios. Tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -39,7 +51,25 @@ export default function PrediosPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-verde-esmeralda-50 flex items-center justify-center">
-        <div className="text-verde-esmeralda-600">Carregando...</div>
+        <div className="text-center">
+          <div className="text-verde-esmeralda-600 text-lg">Carregando...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-verde-esmeralda-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">{error}</div>
+          <button 
+            onClick={fetchPredios}
+            className="bg-verde-esmeralda-600 text-white px-4 py-2 rounded-lg"
+          >
+            Tentar Novamente
+          </button>
+        </div>
       </div>
     )
   }
@@ -47,9 +77,13 @@ export default function PrediosPage() {
   return (
     <div className="min-h-screen bg-verde-esmeralda-50">
       <div className="container mx-auto px-4 py-8">
+        {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <Link href="/" className="text-verde-esmeralda-600 hover:text-verde-esmeralda-800 mb-2 inline-block">
+            <Link 
+              href="/" 
+              className="text-verde-esmeralda-600 hover:text-verde-esmeralda-800 mb-2 inline-block"
+            >
               ← Voltar
             </Link>
             <h1 className="text-3xl font-bold text-verde-esmeralda-800">
@@ -64,6 +98,7 @@ export default function PrediosPage() {
           </button>
         </div>
 
+        {/* Conteúdo */}
         {predios.length === 0 ? (
           <div className="bg-white rounded-lg shadow-lg p-12 text-center">
             <div className="text-6xl mb-4">🏢</div>
@@ -83,7 +118,10 @@ export default function PrediosPage() {
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {predios.map((predio) => (
-              <div key={predio.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+              <div 
+                key={predio.id} 
+                className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
+              >
                 <h3 className="text-xl font-semibold text-verde-esmeralda-800 mb-2">
                   {predio.nome}
                 </h3>
@@ -106,7 +144,6 @@ export default function PrediosPage() {
                   )}
                 </div>
                 
-                {/* 🔧 LINK CORRIGIDO */}
                 <Link
                   href={`/predios/${predio.id}`}
                   className="block w-full bg-verde-esmeralda-600 text-white text-center py-2 rounded-lg hover:bg-verde-esmeralda-700 transition-colors"
@@ -118,6 +155,7 @@ export default function PrediosPage() {
           </div>
         )}
 
+        {/* Modal de formulário */}
         {showForm && (
           <FormularioPredio 
             onClose={() => setShowForm(false)}
@@ -132,7 +170,13 @@ export default function PrediosPage() {
   )
 }
 
-function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSuccess: () => void }) {
+function FormularioPredio({ 
+  onClose, 
+  onSuccess 
+}: { 
+  onClose: () => void
+  onSuccess: () => void 
+}) {
   const [formData, setFormData] = useState({
     nome: '',
     endereco: '',
@@ -144,10 +188,12 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
     emailSindico: ''
   })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/predios', {
@@ -161,11 +207,12 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
       if (response.ok) {
         onSuccess()
       } else {
-        alert('Erro ao cadastrar prédio')
+        const errorData = await response.json().catch(() => ({}))
+        setError(errorData.error || 'Erro ao cadastrar prédio')
       }
     } catch (error) {
       console.error('Erro:', error)
-      alert('Erro ao cadastrar prédio')
+      setError('Erro ao cadastrar prédio')
     } finally {
       setLoading(false)
     }
@@ -186,6 +233,12 @@ function FormularioPredio({ onClose, onSuccess }: { onClose: () => void, onSucce
               ×
             </button>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700">
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid md:grid-cols-2 gap-4">

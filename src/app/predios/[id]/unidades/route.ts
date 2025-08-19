@@ -1,70 +1,96 @@
-//app/api/predios/[id]/unidades/route.ts
+// src/app/api/predios/[id]/unidades/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import { z } from 'zod'
 
-
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { z } from "zod";
-
-// Esquema de validação para criação de unidade
-const CreateUnitSchema = z.object({
-  numero: z.string().min(1, "Número é obrigatório"),
-  tipo: z.string().optional(),
-  metragem: z.number().optional(),
-  fracaoIdeal: z.number().optional(),
-  valorTaxa: z.number().optional(),
-});
+const UnidadeSchema = z.object({
+  numero: z.string().min(1, 'Número é obrigatório'),
+  tipo: z.enum(['apartamento', 'cobertura', 'loja', 'garagem']).default('apartamento'),
+  metragem: z.coerce.number().optional(),
+  fracaoIdeal: z.coerce.number().optional(),
+  status: z.enum(['ocupado', 'vazio']).default('ocupado'),
+  valorTaxa: z.coerce.number().min(0).default(0),
+})
 
 export async function GET(
-  _req: NextRequest,
+  _request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const unidades = await prisma.unidade.findMany({
-      where: { predioId: params.id },
-      include: { responsaveis: true },
-      orderBy: { numero: "asc" },
-    });
+    const predioId = params.id
 
-    return NextResponse.json(unidades);
+    // opcional: valida existência do prédio
+    const predio = await prisma.predio.findUnique({ where: { id: predioId } })
+    if (!predio) {
+      return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 })
+    }
+
+    const unidades = await prisma.unidade.findMany({
+      where: { predioId },
+      include: {
+        responsaveis: {
+          where: { ativo: true },
+          select: { id: true, nome: true, tipo: true, telefone: true, email: true },
+        },
+        pagamentos: { where: { status: 'pendente' }, select: { id: true } },
+      },
+      orderBy: [{ numero: 'asc' }],
+    })
+
+    const unidadesComPendencias = unidades.map(u => ({
+      ...u,
+      pendenciasCount: u.pagamentos.length,
+    }))
+
+    return NextResponse.json(unidadesComPendencias)
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: "Erro ao listar unidades" },
-      { status: 500 }
-    );
+    console.error('Erro ao buscar unidades:', error)
+    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 })
   }
 }
 
 export async function POST(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const json = await req.json();
-    const parse = CreateUnitSchema.safeParse(json);
+    const predioId = params.id
+    const body = await request.json()
+    const validatedData = UnidadeSchema.parse(body)
 
-    if (!parse.success) {
-      return NextResponse.json(
-        { error: "Dados inválidos", issues: parse.error.flatten() },
-        { status: 400 }
-      );
+    const predio = await prisma.predio.findUnique({ where: { id: predioId } })
+    if (!predio) {
+      return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 })
     }
 
-    const data = parse.data;
+    // requer @@unique([predioId, numero]) no schema Prisma da Unidade
+    const unidadeExistente = await prisma.unidade.findUnique({
+      where: { predioId_numero: { predioId, numero: validatedData.numero } },
+    })
+    if (unidadeExistente) {
+      return NextResponse.json(
+        { error: 'Já existe uma unidade com este número neste prédio' },
+        { status: 409 }
+      )
+    }
 
     const unidade = await prisma.unidade.create({
-      data: {
-        ...data,
-        predioId: params.id,
+      data: { ...validatedData, predioId },
+      include: {
+        responsaveis: { where: { ativo: true } },
+        pagamentos: { where: { status: 'pendente' }, select: { id: true } },
       },
-    });
+    })
 
-    return NextResponse.json(unidade, { status: 201 });
-  } catch (error) {
-    console.error(error);
     return NextResponse.json(
-      { error: "Erro ao criar unidade" },
-      { status: 500 }
-    );
+      { ...unidade, pendenciasCount: unidade.pagamentos.length },
+      { status: 201 }
+    )
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 })
+    }
+    console.error('Erro ao criar unidade:', error)
+    return NextResponse.json({ error: 'Erro ao criar unidade' }, { status: 500 })
   }
 }

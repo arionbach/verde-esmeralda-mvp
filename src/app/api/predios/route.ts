@@ -1,54 +1,60 @@
-import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+// src/app/api/predios/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
-export async function GET() {
+// GET - Lista todos os prédios
+export async function GET(_req: NextRequest) {
   try {
     const predios = await prisma.predio.findMany({
+      orderBy: { createdAt: "desc" },
       include: {
-        _count: {
-          select: {
-            unidades: true
-          }
-        }
+        _count: { select: { unidades: true } },
       },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-    
-    return NextResponse.json(predios)
+    });
+
+    return NextResponse.json(predios);
   } catch (error) {
-    console.error('Erro ao buscar predios:', error)
+    console.error("Erro ao listar prédios:", error);
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: "Erro interno ao listar prédios" },
       { status: 500 }
-    )
+    );
   }
 }
 
-export async function POST(request: NextRequest) {
+// POST - Cria um novo prédio
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json()
-    
-    const predio = await prisma.predio.create({
+    const data = await req.json();
+
+    if (!data.nome) {
+      return NextResponse.json(
+        { error: "O campo 'nome' é obrigatório" },
+        { status: 400 }
+      );
+    }
+
+    const novoPredio = await prisma.predio.create({
       data: {
-        nome: body.nome,
-        endereco: body.endereco,
-        cnpj: body.cnpj || null,
-        quantidadeUnidades: parseInt(body.quantidadeUnidades),
-        dataFundacao: body.dataFundacao ? new Date(body.dataFundacao) : null,
-        nomeSindico: body.nomeSindico || null,
-        telefoneSindico: body.telefoneSindico || null,
-        emailSindico: body.emailSindico || null,
-      }
-    })
-    
-    return NextResponse.json(predio, { status: 201 })
+        nome: data.nome,
+        endereco: data.endereco ?? null,
+        cnpj: data.cnpj ?? null,
+        quantidadeUnidades: Number(data.quantidadeUnidades) || 0,
+        dataFundacao: data.dataFundacao
+          ? new Date(data.dataFundacao)
+          : null,
+        nomeSindico: data.nomeSindico ?? null,
+        telefoneSindico: data.telefoneSindico ?? null,
+        emailSindico: data.emailSindico ?? null,
+      },
+    });
+
+    return NextResponse.json(novoPredio, { status: 201 });
   } catch (error) {
-    console.error('Erro ao criar predio:', error)
+    console.error("Erro ao criar prédio:", error);
     return NextResponse.json(
-      { error: 'Erro ao criar predio' },
+      { error: "Erro interno ao criar prédio" },
       { status: 500 }
-    )
+    );
   }
 }

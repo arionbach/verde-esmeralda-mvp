@@ -1,14 +1,13 @@
-// src/app/api/predios/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET(
   _req: NextRequest,
-  ctx: { params: Promise<{ id: string }> } // 👈 params agora é Promise
+  { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await ctx.params; // 👈 await antes de usar
+  const { id } = params;
 
+  try {
     const predio = await prisma.predio.findUnique({
       where: { id },
       include: { _count: { select: { unidades: true } } },
@@ -19,8 +18,8 @@ export async function GET(
     }
 
     return NextResponse.json(predio);
-  } catch (e) {
-    console.error("Erro ao carregar prédio:", e);
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }
