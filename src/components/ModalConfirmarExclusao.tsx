@@ -4,24 +4,22 @@
 import { useState } from 'react'
 
 interface ModalConfirmarExclusaoProps {
-  titulo: string
-  mensagem: string
-  onConfirmar: () => Promise<void>
-  onCancelar: () => void
+  item: string
+  onConfirm: () => Promise<void>
+  onCancel: () => void
 }
 
 export default function ModalConfirmarExclusao({
-  titulo,
-  mensagem,
-  onConfirmar,
-  onCancelar
+  item,
+  onConfirm,
+  onCancel
 }: ModalConfirmarExclusaoProps) {
   const [loading, setLoading] = useState(false)
 
-  const handleConfirmar = async () => {
+  const handleConfirm = async () => {
     setLoading(true)
     try {
-      await onConfirmar()
+      await onConfirm()
     } finally {
       setLoading(false)
     }
@@ -37,24 +35,26 @@ export default function ModalConfirmarExclusao({
             </svg>
           </div>
           <h3 className="ml-3 text-lg font-medium text-gray-900">
-            {titulo}
+            Confirmar Exclusão
           </h3>
         </div>
 
         <p className="text-gray-600 mb-6">
-          {mensagem}
+          Tem certeza que deseja excluir <strong>{item}</strong>?
+          <br />
+          <span className="text-sm text-red-600">Esta ação não pode ser desfeita.</span>
         </p>
 
         <div className="flex gap-3">
           <button
-            onClick={onCancelar}
+            onClick={onCancel}
             disabled={loading}
             className="flex-1 px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 disabled:opacity-50"
           >
             Cancelar
           </button>
           <button
-            onClick={handleConfirmar}
+            onClick={handleConfirm}
             disabled={loading}
             className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
           >

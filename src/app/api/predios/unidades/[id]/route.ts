@@ -1,54 +1,108 @@
+// src/app/api/predios/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
 
-// GET (uma unidade)
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+// GET - Buscar prédio específico
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const u = await prisma.unidade.findUnique({
+    const predio = await prisma.predio.findUnique({
       where: { id: params.id },
       include: {
-        responsaveis: { where: { ativo: true }, orderBy: { dataInicio: 'desc' } },
-        predio: { select: { id: true, nome: true } },
-      },
+        _count: {
+          select: { unidades: true }
+        }
+      }
     })
-    if (!u) return NextResponse.json({ error: 'Unidade não encontrada' }, { status: 404 })
-    return NextResponse.json(u)
-  } catch {
-    return NextResponse.json({ error: 'Erro ao carregar unidade' }, { status: 500 })
+
+    if (!predio) {
+      return NextResponse.json(
+        { error: 'Prédio não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(predio)
+  } catch (error) {
+    console.error('Erro ao buscar prédio:', error)
+    return NextResponse.json(
+      { error: 'Erro ao buscar prédio' },
+      { status: 500 }
+    )
   }
 }
 
-// PUT (editar unidade)
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+// PUT - Atualizar prédio
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    const body = await req.json()
-    const u = await prisma.unidade.update({
+    const { 
+      nome, 
+      endereco, 
+      cnpj,
+      quantidadeUnidades, 
+      dataFundacao,
+      nomeSindico,
+      telefoneSindico,
+      emailSindico 
+    } = await request.json()
+
+    const predio = await prisma.predio.update({
       where: { id: params.id },
       data: {
-        numero: body.numero,
-        tipo: body.tipo,
-        metragem: body.metragem != null ? Number(body.metragem) : undefined,
-        fracaoIdeal: body.fracaoIdeal != null ? Number(body.fracaoIdeal) : undefined,
-        valorTaxa: body.valorTaxa != null ? Number(body.valorTaxa) : undefined,
-        status: body.status, // se usar enum, alinhar valores
-      },
+        nome,
+        endereco,
+        cnpj,
+        quantidadeUnidades: quantidadeUnidades ? parseInt(quantidadeUnidades) : 0,
+        dataFundacao: dataFundacao ? new Date(dataFundacao) : null,
+        nomeSindico,
+        telefoneSindico,
+        emailSindico
+      }
     })
-    return NextResponse.json(u)
-  } catch {
-    return NextResponse.json({ error: 'Erro ao atualizar unidade' }, { status: 500 })
+
+    return NextResponse.json(predio)
+  } catch (error) {
+    console.error('Erro ao atualizar prédio:', error)
+    return NextResponse.json(
+      { error: 'Erro ao atualizar prédio' },
+      { status: 500 }
+    )
   }
 }
 
-// DELETE (excluir unidade + responsáveis)
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+// DELETE - Deletar prédio
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    await prisma.$transaction([
-      prisma.responsavel.deleteMany({ where: { unidadeId: params.id } }),
-      // se houver pagamentos/itens financeiros da unidade, deleteMany aqui
-      prisma.unidade.delete({ where: { id: params.id } }),
-    ])
-    return NextResponse.json({ ok: true })
-  } catch {
-    return NextResponse.json({ error: 'Não foi possível excluir a unidade' }, { status: 500 })
+    // Verificar se tem unidades
+    const unidadesCount = await prisma.unidade.count({
+      where: { predioId: params.id }
+    })
+
+    if (unidadesCount > 0) {
+      return NextResponse.json(
+        { error: 'Não é possível deletar prédio com unidades cadastradas' },
+        { status: 400 }
+      )
+    }
+
+    await prisma.predio.delete({
+      where: { id: params.id }
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Erro ao deletar prédio:', error)
+    return NextResponse.json(
+      { error: 'Erro ao deletar prédio' },
+      { status: 500 }
+    )
   }
 }

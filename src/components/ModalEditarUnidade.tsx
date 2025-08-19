@@ -6,23 +6,27 @@ import { useState } from 'react'
 interface Unidade {
   id: string
   numero: string
-  tipo: string
-  area: number | null
-  observacoes: string | null
+  tipo: 'apartamento' | 'cobertura' | 'loja' | 'garagem'  // ✅ Corrigido para union type
+  metragem: number | null
+  fracaoIdeal: number | null
+  valorTaxa: number
+  status: 'ocupado' | 'vazio'  // ✅ Corrigido para union type
 }
 
 interface ModalEditarUnidadeProps {
   unidade: Unidade
   onClose: () => void
-  onUpdate: () => void
+  onSave: (unidadeAtualizada: Partial<Unidade>) => Promise<void>
 }
 
-export default function ModalEditarUnidade({ unidade, onClose, onUpdate }: ModalEditarUnidadeProps) {
+export default function ModalEditarUnidade({ unidade, onClose, onSave }: ModalEditarUnidadeProps) {
   const [formData, setFormData] = useState({
     numero: unidade.numero,
     tipo: unidade.tipo,
-    area: unidade.area?.toString() || '',
-    observacoes: unidade.observacoes || ''
+    metragem: unidade.metragem?.toString() || '',
+    fracaoIdeal: unidade.fracaoIdeal?.toString() || '',
+    valorTaxa: unidade.valorTaxa.toString(),
+    status: unidade.status
   })
   const [loading, setLoading] = useState(false)
 
@@ -31,19 +35,16 @@ export default function ModalEditarUnidade({ unidade, onClose, onUpdate }: Modal
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/unidades/${unidade.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      if (response.ok) {
-        onUpdate()
-        onClose()
-      } else {
-        const error = await response.json()
-        alert(error.error || 'Erro ao atualizar unidade')
+      const unidadeAtualizada = {
+        numero: formData.numero,
+        tipo: formData.tipo,
+        metragem: formData.metragem ? parseFloat(formData.metragem) : null,
+        fracaoIdeal: formData.fracaoIdeal ? parseFloat(formData.fracaoIdeal) : null,
+        valorTaxa: parseFloat(formData.valorTaxa),
+        status: formData.status
       }
+
+      await onSave(unidadeAtualizada)
     } catch (error) {
       console.error('Erro:', error)
       alert('Erro ao atualizar unidade')
@@ -57,7 +58,7 @@ export default function ModalEditarUnidade({ unidade, onClose, onUpdate }: Modal
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-verde-esmeralda-800">
-            Editar Unidade
+            Editar Unidade {unidade.numero}
           </h2>
           <button
             onClick={onClose}
@@ -87,44 +88,77 @@ export default function ModalEditarUnidade({ unidade, onClose, onUpdate }: Modal
             </label>
             <select
               value={formData.tipo}
-              onChange={(e) => setFormData({...formData, tipo: e.target.value})}
+              onChange={(e) => setFormData({...formData, tipo: e.target.value as 'apartamento' | 'cobertura' | 'loja' | 'garagem'})}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
               required
             >
-              <option value="APARTAMENTO">Apartamento</option>
-              <option value="COBERTURA">Cobertura</option>
-              <option value="LOJA">Loja</option>
-              <option value="GARAGEM">Garagem</option>
-              <option value="DEPOSITO">Depósito</option>
-              <option value="OUTRO">Outro</option>
+              <option value="apartamento">Apartamento</option>
+              <option value="cobertura">Cobertura</option>
+              <option value="loja">Loja</option>
+              <option value="garagem">Garagem</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Área (m²)
+              Metragem (m²)
             </label>
             <input
               type="number"
               step="0.01"
-              value={formData.area}
-              onChange={(e) => setFormData({...formData, area: e.target.value})}
+              value={formData.metragem}
+              onChange={(e) => setFormData({...formData, metragem: e.target.value})}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
               placeholder="Ex: 65.50"
+              min="0"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              Observações
+              Fração Ideal (%)
             </label>
-            <textarea
-              value={formData.observacoes}
-              onChange={(e) => setFormData({...formData, observacoes: e.target.value})}
+            <input
+              type="number"
+              step="0.01"
+              value={formData.fracaoIdeal}
+              onChange={(e) => setFormData({...formData, fracaoIdeal: e.target.value})}
               className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-              rows={3}
-              placeholder="Observações sobre a unidade..."
+              placeholder="Ex: 1.25"
+              min="0"
+              max="100"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Valor da Taxa (R$) *
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.valorTaxa}
+              onChange={(e) => setFormData({...formData, valorTaxa: e.target.value})}
+              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+              placeholder="Ex: 250.00"
+              min="0"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Status *
+            </label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData({...formData, status: e.target.value as 'ocupado' | 'vazio'})}
+              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+              required
+            >
+              <option value="ocupado">Ocupado</option>
+              <option value="vazio">Vazio</option>
+            </select>
           </div>
 
           <div className="flex gap-2 pt-4">

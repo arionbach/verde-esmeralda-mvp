@@ -1,67 +1,91 @@
-import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
-import { z } from 'zod';
+// src/app/api/predios/[id]/unidades/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import { z } from 'zod'
 
-const UnidadeSchema = z.object({
-  numero: z.string().min(1, 'Número é obrigatório'),
-  tipo: z.enum(['apartamento', 'cobertura', 'loja', 'garagem']).default('apartamento'),
-  metragem: z.coerce.number().optional(),
-  fracaoIdeal: z.coerce.number().optional(),
-  status: z.enum(['ocupado', 'vazio']).default('ocupado'),
-  valorTaxa: z.coerce.number().min(0).default(0),
-});
+// validação de entrada (create)
+const UnidadeCreateSchema = z.object({
+  numero: z.string().min(1, 'Número é obrigatório').transform(s => s.trim()),
+  tipo: z.enum(['apartamento', 'cobertura', 'loja', 'garagem']),
+  metragem: z.number().positive().nullable().optional(),
+  fracaoIdeal: z.number().min(0).max(100).nullable().optional(),
+  valorTaxa: z.number().min(0).default(0),
+  status: z.enum(['ocupado', 'vazio']),
+})
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const predioId = params.id
   try {
-    const predio = await prisma.predio.findUnique({ where: { id: params.id } });
-    if (!predio) return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 });
+    // garante prédio existente (evita responder 200 vazios para id inválido)
+    const predio = await prisma.predio.findUnique({ where: { id: predioId }, select: { id: true } })
+    if (!predio) return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 })
 
     const unidades = await prisma.unidade.findMany({
-      where: { predioId: params.id },
+      where: { predioId },
       include: {
-        responsaveis: { where: { ativo: true }, select: { id: true, nome: true, tipo: true, telefone: true, email: true } },
-        pagamentos: { where: { status: 'pendente' }, select: { id: true } },
+        responsaveis: true, // pode filtrar por ativo no futuro, hoje o front faz a escolha
       },
       orderBy: [{ numero: 'asc' }],
-    });
-
-    return NextResponse.json(unidades.map(u => ({ ...u, pendenciasCount: u.pagamentos.length })));
-  } catch (error) {
-    console.error('Erro ao buscar unidades:', error);
-    return NextResponse.json({ error: 'Erro interno do servidor' }, { status: 500 });
+    })
+    return NextResponse.json(unidades)
+  } catch (e) {
+    console.error('[UNIDADES][GET] erro:', e)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const predioId = params.id
   try {
-    const body = await req.json();
-    const data = UnidadeSchema.parse(body);
+    const body = await req.json()
+    const parsed = UnidadeCreateSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Dados inválidos', issues: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+    const data = parsed.data
 
-    const predio = await prisma.predio.findUnique({ where: { id: params.id } });
-    if (!predio) return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 });
+    // prédio existe?
+    const predio = await prisma.predio.findUnique({ where: { id: predioId }, select: { id: true } })
+    if (!predio) return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 })
 
-    // requer @@unique([predioId, numero]) no model Unidade
-    const existente = await prisma.unidade.findUnique({
-      where: { predioId_numero: { predioId: params.id, numero: data.numero } },
-    });
-    if (existente) {
-      return NextResponse.json({ error: 'Já existe uma unidade com este número neste prédio' }, { status: 409 });
+    // duplicidade (mesmo número no mesmo prédio)
+    const existe = await prisma.unidade.findFirst({
+      where: { predioId, numero: data.numero },
+      select: { id: true },
+    })
+    if (existe) {
+      return NextResponse.json(
+        { error: 'Já existe uma unidade com este número neste prédio.' },
+        { status: 409 } // <- o front trata esse 409 especificamente:contentReference[oaicite:12]{index=12}
+      )
     }
 
-    const unidade = await prisma.unidade.create({
-      data: { ...data, predioId: params.id },
-      include: {
-        responsaveis: { where: { ativo: true } },
-        pagamentos: { where: { status: 'pendente' }, select: { id: true } },
+    // coerência mínima status x responsável (no create não há responsável ainda)
+    // se vier "vazio": ok; se vier "ocupado": aceitaremos (responsável pode ser cadastrado em seguida)
+
+    const created = await prisma.unidade.create({
+      data: {
+        predioId,
+        numero: data.numero,
+        tipo: data.tipo,
+        metragem: data.metragem ?? null,
+        fracaoIdeal: data.fracaoIdeal ?? null,
+        valorTaxa: data.valorTaxa ?? 0,
+        status: data.status,
       },
-    });
-
-    return NextResponse.json({ ...unidade, pendenciasCount: unidade.pagamentos.length }, { status: 201 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: 'Dados inválidos', details: error.errors }, { status: 400 });
-    }
-    console.error('Erro ao criar unidade:', error);
-    return NextResponse.json({ error: 'Erro ao criar unidade' }, { status: 500 });
+    })
+    return NextResponse.json(created, { status: 201 })
+  } catch (e) {
+    console.error('[UNIDADES][POST] erro:', e)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }

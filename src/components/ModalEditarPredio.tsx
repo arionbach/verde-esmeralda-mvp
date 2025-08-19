@@ -3,13 +3,17 @@
 
 import { useState } from 'react'
 
+// ✅ Interface CORRIGIDA para bater com Schema Prisma
 interface Predio {
   id: string
   nome: string
   endereco: string
-  totalUnidades: number | null
-  valorTaxa: number | null
-  observacoes: string | null
+  cnpj: string | null
+  quantidadeUnidades: number
+  dataFundacao: string | null
+  nomeSindico: string | null      // ✅ Corrigido de 'sindico'
+  telefoneSindico: string | null  // ✅ Corrigido de 'telefone'
+  emailSindico: string | null     // ✅ Corrigido de 'email'
 }
 
 interface ModalEditarPredioProps {
@@ -22,9 +26,12 @@ export default function ModalEditarPredio({ predio, onClose, onUpdate }: ModalEd
   const [formData, setFormData] = useState({
     nome: predio.nome,
     endereco: predio.endereco,
-    totalUnidades: predio.totalUnidades?.toString() || '',
-    valorTaxa: predio.valorTaxa?.toString() || '',
-    observacoes: predio.observacoes || ''
+    cnpj: predio.cnpj || '',
+    quantidadeUnidades: predio.quantidadeUnidades.toString(),
+    dataFundacao: predio.dataFundacao ? predio.dataFundacao.split('T')[0] : '',
+    nomeSindico: predio.nomeSindico || '',           // ✅ Corrigido
+    telefoneSindico: predio.telefoneSindico || '',   // ✅ Corrigido
+    emailSindico: predio.emailSindico || ''          // ✅ Corrigido
   })
   const [loading, setLoading] = useState(false)
 
@@ -56,7 +63,7 @@ export default function ModalEditarPredio({ predio, onClose, onUpdate }: ModalEd
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-lg">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-verde-esmeralda-800">
             Editar Prédio
@@ -70,18 +77,33 @@ export default function ModalEditarPredio({ predio, onClose, onUpdate }: ModalEd
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Nome do Prédio *
-            </label>
-            <input
-              type="text"
-              value={formData.nome}
-              onChange={(e) => setFormData({...formData, nome: e.target.value})}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-              required
-              placeholder="Ex: Edifício Central"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                Nome do Prédio *
+              </label>
+              <input
+                type="text"
+                value={formData.nome}
+                onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+                required
+                placeholder="Ex: Edifício Central"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">
+                CNPJ
+              </label>
+              <input
+                type="text"
+                value={formData.cnpj}
+                onChange={(e) => setFormData({...formData, cnpj: e.target.value})}
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+                placeholder="00.000.000/0000-00"
+              />
+            </div>
           </div>
 
           <div>
@@ -98,46 +120,79 @@ export default function ModalEditarPredio({ predio, onClose, onUpdate }: ModalEd
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">
-                Total de Unidades
+                Quantidade de Unidades
               </label>
               <input
                 type="number"
-                value={formData.totalUnidades}
-                onChange={(e) => setFormData({...formData, totalUnidades: e.target.value})}
+                value={formData.quantidadeUnidades}
+                onChange={(e) => setFormData({...formData, quantidadeUnidades: e.target.value})}
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
                 placeholder="Ex: 24"
+                min="0"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium mb-1">
-                Valor Taxa Mensal (R$)
+                Data de Fundação
               </label>
               <input
-                type="number"
-                step="0.01"
-                value={formData.valorTaxa}
-                onChange={(e) => setFormData({...formData, valorTaxa: e.target.value})}
+                type="date"
+                value={formData.dataFundacao}
+                onChange={(e) => setFormData({...formData, dataFundacao: e.target.value})}
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                placeholder="Ex: 150.00"
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Observações
-            </label>
-            <textarea
-              value={formData.observacoes}
-              onChange={(e) => setFormData({...formData, observacoes: e.target.value})}
-              className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-              rows={3}
-              placeholder="Observações sobre o prédio..."
-            />
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold text-verde-esmeralda-800 mb-3">
+              Dados do Síndico
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Nome do Síndico
+                </label>
+                <input
+                  type="text"
+                  value={formData.nomeSindico}
+                  onChange={(e) => setFormData({...formData, nomeSindico: e.target.value})}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+                  placeholder="Nome completo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Telefone do Síndico
+                </label>
+                <input
+                  type="tel"
+                  value={formData.telefoneSindico}
+                  onChange={(e) => setFormData({...formData, telefoneSindico: e.target.value})}
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-1">
+                Email do Síndico
+              </label>
+              <input
+                type="email"
+                value={formData.emailSindico}
+                onChange={(e) => setFormData({...formData, emailSindico: e.target.value})}
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
+                placeholder="sindico@exemplo.com"
+              />
+            </div>
           </div>
 
           <div className="flex gap-2 pt-4">

@@ -7,21 +7,41 @@ import { useParams, useSearchParams } from 'next/navigation'
 
 type TabKey = 'unidades' | 'financeiro' | 'comunicados' | 'relatorios'
 
+// ✅ Interface CORRIGIDA para bater com Schema Prisma
 interface Predio {
   id: string
   nome: string
   endereco: string
-  quantidadeUnidades?: number
-  nomeSindico?: string | null
-  _count?: { unidades: number }
+  quantidadeUnidades: number
+  nomeSindico: string | null
+  telefoneSindico: string | null
+  emailSindico: string | null
+  cnpj: string | null
+  dataFundacao: string | null
+  _count: { unidades: number }
 }
 
+// ✅ Interface CORRIGIDA para bater com Schema Prisma
+interface Responsavel {
+  id: string
+  nome: string
+  cpfCnpj: string  // ✅ Corrigido de 'cpf' para 'cpfCnpj'
+  telefone: string | null
+  email: string | null
+  tipo: string
+  ativo: boolean
+}
+
+// ✅ Interface CORRIGIDA para bater com Schema Prisma
 interface Unidade {
   id: string
   numero: string
-  bloco?: string | null
-  status?: 'OCUPADA' | 'VAGA' | 'INADIMPLENTE' | string
-  responsavel?: { nome: string } | null
+  tipo: string
+  metragem: number | null  // ✅ Corrigido de 'area' para 'metragem'
+  fracaoIdeal: number | null
+  valorTaxa: number
+  status: string
+  responsaveis: Responsavel[]
 }
 
 export default function PredioDashboardPage() {
@@ -36,7 +56,7 @@ export default function PredioDashboardPage() {
   const [predio, setPredio] = useState<Predio | null>(null)
   const [unidades, setUnidades] = useState<Unidade[]>([])
 
-  const totalUnidades = useMemo(() => predio?.quantidadeUnidades ?? unidades.length, [predio, unidades])
+  const totalUnidades = useMemo(() => predio?.quantidadeUnidades ?? 0, [predio])
   const cadastradas = useMemo(() => predio?._count?.unidades ?? unidades.length, [predio, unidades])
 
   useEffect(() => setTab(((search.get('tab') as TabKey) || 'unidades')), [search])
@@ -51,7 +71,8 @@ export default function PredioDashboardPage() {
 
         const u = await fetch(`/api/predios/${params.id}/unidades`)
         if (!u.ok) throw new Error('Falha ao carregar unidades')
-        setUnidades(await u.json())
+        const unidadesData = await u.json()
+        setUnidades(unidadesData)
       } catch (e: any) {
         setError(e?.message ?? 'Erro inesperado')
       } finally {
@@ -87,11 +108,12 @@ export default function PredioDashboardPage() {
         <header className="mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-verde-esmeralda-800">{predio?.nome ?? 'Condomínio'}</h1>
-            {predio?.endereco && <p className="text-sm text-gray-600">{predio.endereco}</p>}
+            {predio?.endereco && <p className="text-sm text-gray-600">📍 {predio.endereco}</p>}
             {predio?.nomeSindico && <p className="text-sm text-gray-500">Síndico: <span className="font-medium">{predio.nomeSindico}</span></p>}
+            {predio?.telefoneSindico && <p className="text-sm text-gray-500">📞 {predio.telefoneSindico}</p>}
           </div>
           <div className="flex gap-2">
-            <Link href="/predios" className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Voltar</Link>
+            <Link href="/" className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">Voltar</Link>
             <button onClick={() => window.location.reload()} className="px-4 py-2 rounded-lg bg-verde-esmeralda-600 text-white hover:bg-verde-esmeralda-700">Atualizar</button>
           </div>
         </header>
@@ -114,7 +136,10 @@ export default function PredioDashboardPage() {
                 setSaving(true)
                 try {
                   const res = await fetch(`/api/predios/${params.id}/unidades`)
-                  if (res.ok) setUnidades(await res.json())
+                  if (res.ok) {
+                    const data = await res.json()
+                    setUnidades(data)
+                  }
                 } finally {
                   setSaving(false)
                 }
@@ -180,7 +205,7 @@ function TabUnidades({ predioId, itens, onRefresh, loading }: { predioId: string
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
         <h2 className="text-lg font-semibold text-verde-esmeralda-800">Unidades</h2>
         <div className="flex gap-2">
-          <Link href={`/predios/${predioId}/unidades/nova`} className="px-4 py-2 rounded-lg bg-verde-esmeralda-600 text-white hover:bg-verde-esmeralda-700">+ Nova Unidade</Link>
+          <Link href={`/predios/${predioId}/unidades`} className="px-4 py-2 rounded-lg bg-verde-esmeralda-600 text-white hover:bg-verde-esmeralda-700">+ Nova Unidade</Link>
           <button onClick={onRefresh} disabled={loading} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-60">
             {loading ? 'Atualizando…' : 'Atualizar'}
           </button>
@@ -195,24 +220,47 @@ function TabUnidades({ predioId, itens, onRefresh, loading }: { predioId: string
             <thead>
               <tr className="text-left text-gray-500 border-b">
                 <th className="py-2 pr-4">Número</th>
-                <th className="py-2 pr-4">Bloco</th>
+                <th className="py-2 pr-4">Tipo</th>
+                <th className="py-2 pr-4">Metragem</th>
                 <th className="py-2 pr-4">Responsável</th>
                 <th className="py-2 pr-4">Status</th>
                 <th className="py-2 pr-4 text-right">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {itens.map(u => (
-                <tr key={u.id} className="border-b last:border-0">
-                  <td className="py-2 pr-4 font-medium text-gray-800">{u.numero}</td>
-                  <td className="py-2 pr-4">{u.bloco ?? '—'}</td>
-                  <td className="py-2 pr-4">{u.responsavel?.nome ?? '—'}</td>
-                  <td className="py-2 pr-4"><StatusPill status={u.status} /></td>
-                  <td className="py-2 pr-0 text-right">
-                    <Link href={`/predios/${predioId}/unidades/${u.id}`} className="text-verde-esmeralda-600 hover:text-verde-esmeralda-800">Gerenciar</Link>
-                  </td>
-                </tr>
-              ))}
+              {itens.map(u => {
+                const responsavelAtivo = u.responsaveis?.find(r => r.ativo)
+                return (
+                  <tr key={u.id} className="border-b last:border-0">
+                    <td className="py-2 pr-4 font-medium text-gray-800">{u.numero}</td>
+                    <td className="py-2 pr-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-verde-esmeralda-100 text-verde-esmeralda-800">
+                        {getTipoLabel(u.tipo)}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-4">{u.metragem ? `${u.metragem} m²` : '—'}</td>
+                    <td className="py-2 pr-4">
+                      {responsavelAtivo ? (
+                        <div>
+                          <div className="font-medium text-gray-800">{responsavelAtivo.nome}</div>
+                          <div className="text-xs text-gray-500">{getTipoResponsavel(responsavelAtivo.tipo)}</div>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Sem responsável</span>
+                      )}
+                    </td>
+                    <td className="py-2 pr-4"><StatusPill status={u.status} /></td>
+                    <td className="py-2 pr-0 text-right">
+                      <Link 
+                        href={`/predios/${predioId}/unidades`} 
+                        className="text-verde-esmeralda-600 hover:text-verde-esmeralda-800 font-medium"
+                      >
+                        Gerenciar
+                      </Link>
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
@@ -221,20 +269,44 @@ function TabUnidades({ predioId, itens, onRefresh, loading }: { predioId: string
   )
 }
 
-function StatusPill({ status }: { status?: string }) {
-  const map: Record<string, string> = {
-    OCUPADA: 'bg-emerald-100 text-emerald-700',
-    INADIMPLENTE: 'bg-orange-100 text-orange-700',
-    VAGA: 'bg-gray-100 text-gray-700',
+function StatusPill({ status }: { status: string }) {
+  const statusMap: Record<string, { label: string; className: string }> = {
+    ocupado: { label: 'Ocupado', className: 'bg-emerald-100 text-emerald-700' },
+    vazio: { label: 'Vazio', className: 'bg-gray-100 text-gray-700' },
   }
-  const cls = map[status || ''] || 'bg-gray-100 text-gray-700'
-  const label = status || '—'
-  return <span className={`px-2 py-1 rounded-full text-xs ${cls}`}>{label}</span>
+  
+  const statusInfo = statusMap[status] || { label: status, className: 'bg-gray-100 text-gray-700' }
+  
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.className}`}>
+      {statusInfo.label}
+    </span>
+  )
 }
 
-// considera ocupada se status = OCUPADA ou se há responsável
+function getTipoLabel(tipo: string): string {
+  const tipos: Record<string, string> = {
+    apartamento: 'Apartamento',
+    cobertura: 'Cobertura',
+    loja: 'Loja',
+    garagem: 'Garagem'
+  }
+  return tipos[tipo] || tipo
+}
+
+function getTipoResponsavel(tipo: string): string {
+  const tipos: Record<string, string> = {
+    proprietario: 'Proprietário',
+    inquilino: 'Inquilino'
+  }
+  return tipos[tipo] || tipo
+}
+
+// considera ocupada se status = ocupado ou se há responsável ativo
 function calcOcupacao(unidades: Unidade[]): number {
   if (!unidades?.length) return 0
-  const ocupadas = unidades.filter(u => u.status === 'OCUPADA' || !!u.responsavel).length
+  const ocupadas = unidades.filter(u => 
+    u.status === 'ocupado' || u.responsaveis?.some(r => r.ativo)
+  ).length
   return Math.round((ocupadas / unidades.length) * 100)
 }
