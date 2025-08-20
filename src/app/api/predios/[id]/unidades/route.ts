@@ -92,7 +92,6 @@ export async function GET(
     const unidades = await prisma.unidade.findMany({
       where: {
         predioId,
-        ativo: true,
         ...(status && { status: normalizeStatus(status) }),
         ...(tipo && { tipo: normalizeTipo(tipo) }),
       },
