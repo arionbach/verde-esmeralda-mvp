@@ -1,135 +1,153 @@
 // src/app/page.tsx
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import ModalEditarPredio from '@/components/ModalEditarPredio'
-import ModalConfirmarExclusao from '@/components/ModalConfirmarExclusao'
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import ModalEditarPredio from "@/components/ModalEditarPredio";
+import ModalConfirmarExclusao from "@/components/ModalConfirmarExclusao";
+import { PredioForm, PredioFormValues } from "@/components/predios/PredioForm";
 
 // ✅ Interface CORRIGIDA para bater com Schema Prisma
 interface Predio {
-  id: string
-  nome: string
-  endereco: string
-  cnpj: string | null
-  quantidadeUnidades: number
-  dataFundacao: string | null
-  nomeSindico: string | null      // ✅ Corrigido de 'sindico'
-  telefoneSindico: string | null  // ✅ Corrigido de 'telefone'
-  emailSindico: string | null     // ✅ Corrigido de 'email'
-  createdAt: string
+  id: string;
+  nome: string;
+  endereco: string;
+  cnpj: string | null;
+  quantidadeUnidades: number;
+  dataFundacao: string | null;
+  nomeSindico: string | null; // ✅ Corrigido de 'sindico'
+  telefoneSindico: string | null; // ✅ Corrigido de 'telefone'
+  emailSindico: string | null; // ✅ Corrigido de 'email'
+  createdAt: string;
   _count: {
-    unidades: number
-  }
+    unidades: number;
+  };
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('overview')
-  const [predios, setPredios] = useState<Predio[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showForm, setShowForm] = useState(false)
+  const [activeTab, setActiveTab] = useState("overview");
+  const [predios, setPredios] = useState<Predio[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
   const [novoPredio, setNovoPredio] = useState({
-    nome: '',
-    endereco: '',
-    cnpj: '',
-    quantidadeUnidades: '',
-    dataFundacao: '',
-    nomeSindico: '',        // ✅ Corrigido de 'sindico'
-    telefoneSindico: '',    // ✅ Corrigido de 'telefone'
-    emailSindico: ''        // ✅ Corrigido de 'email'
-  })
-  const [submitLoading, setSubmitLoading] = useState(false)
+    nome: "",
+    endereco: "",
+    cnpj: "",
+    quantidadeUnidades: "",
+    dataFundacao: "",
+    nomeSindico: "", // ✅ Corrigido de 'sindico'
+    telefoneSindico: "", // ✅ Corrigido de 'telefone'
+    emailSindico: "", // ✅ Corrigido de 'email'
+  });
+  const [submitLoading, setSubmitLoading] = useState(false);
 
   // Estados para modais
-  const [predioEditando, setPredioEditando] = useState<Predio | null>(null)
-  const [predioExcluindo, setPredioExcluindo] = useState<Predio | null>(null)
+  const [predioEditando, setPredioEditando] = useState<Predio | null>(null);
+  const [predioExcluindo, setPredioExcluindo] = useState<Predio | null>(null);
 
   const carregarPredios = async () => {
     try {
-      const response = await fetch('/api/predios')
+      const response = await fetch("/api/predios");
       if (response.ok) {
-        const data = await response.json()
-        setPredios(data)
+        const data = await response.json();
+        setPredios(data);
       }
     } catch (error) {
-      console.error('Erro ao carregar prédios:', error)
+      console.error("Erro ao carregar prédios:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    carregarPredios()
-  }, [])
+    carregarPredios();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSubmitLoading(true)
+    e.preventDefault();
+    setSubmitLoading(true);
+
+    // 🔽 monta payload coerido antes do fetch
+    const payload = {
+      ...novoPredio,
+      quantidadeUnidades:
+        novoPredio.quantidadeUnidades?.toString().trim() !== ""
+          ? Number(novoPredio.quantidadeUnidades)
+          : 0, // ou undefined, se preferir deixar opcional
+      dataFundacao: novoPredio.dataFundacao?.trim() || undefined,
+      cnpj: novoPredio.cnpj?.trim() || undefined,
+      nomeSindico: novoPredio.nomeSindico?.trim() || undefined,
+      telefoneSindico: novoPredio.telefoneSindico?.trim() || undefined,
+      emailSindico: novoPredio.emailSindico?.trim() || undefined,
+    };
 
     try {
-      const response = await fetch('/api/predios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(novoPredio)
-      })
+      const response = await fetch("/api/predios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (response.ok) {
-        setNovoPredio({ 
-          nome: '', 
-          endereco: '', 
-          cnpj: '',
-          quantidadeUnidades: '', 
-          dataFundacao: '',
-          nomeSindico: '',        // ✅ Corrigido
-          telefoneSindico: '',    // ✅ Corrigido
-          emailSindico: ''        // ✅ Corrigido
-        })
-        setShowForm(false)
-        carregarPredios()
+        setNovoPredio({
+          nome: "",
+          endereco: "",
+          cnpj: "",
+          quantidadeUnidades: "",
+          dataFundacao: "",
+          nomeSindico: "",
+          telefoneSindico: "",
+          emailSindico: "",
+        });
+        setShowForm(false);
+        carregarPredios();
       } else {
-        const error = await response.json()
-        alert(error.error || 'Erro ao criar prédio')
+        const error = await response.json();
+        alert(error.error || "Erro ao criar prédio");
       }
     } catch (error) {
-      console.error('Erro:', error)
-      alert('Erro ao criar prédio')
+      console.error("Erro:", error);
+      alert("Erro ao criar prédio");
     } finally {
-      setSubmitLoading(false)
+      setSubmitLoading(false);
     }
-  }
+  };
 
   const handleExcluirPredio = async () => {
-    if (!predioExcluindo) return
+    if (!predioExcluindo) return;
 
     try {
       const response = await fetch(`/api/predios/${predioExcluindo.id}`, {
-        method: 'DELETE'
-      })
+        method: "DELETE",
+      });
 
       if (response.ok) {
-        setPredioExcluindo(null)
-        carregarPredios()
+        setPredioExcluindo(null);
+        carregarPredios();
       } else {
-        const error = await response.json()
-        alert(error.error || 'Erro ao excluir prédio')
+        const error = await response.json();
+        alert(error.error || "Erro ao excluir prédio");
       }
     } catch (error) {
-      console.error('Erro:', error)
-      alert('Erro ao excluir prédio')
+      console.error("Erro:", error);
+      alert("Erro ao excluir prédio");
     }
-  }
+  };
 
   // Cálculos para o overview
-  const totalPredios = predios.length
-  const totalUnidades = predios.reduce((sum, predio) => sum + predio._count.unidades, 0)
-  const receitaEstimada = 0 // Será calculado quando implementarmos o financeiro
+  const totalPredios = predios.length;
+  const totalUnidades = predios.reduce(
+    (sum, predio) => sum + predio._count.unidades,
+    0
+  );
+  const receitaEstimada = 0; // Será calculado quando implementarmos o financeiro
 
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-verde-esmeralda-50 to-verde-esmeralda-100 flex items-center justify-center">
         <div className="text-verde-esmeralda-600 text-xl">Carregando...</div>
       </main>
-    )
+    );
   }
 
   return (
@@ -149,41 +167,41 @@ export default function Home() {
         <div className="bg-white rounded-lg shadow-lg mb-6">
           <div className="flex border-b">
             <button
-              onClick={() => setActiveTab('overview')}
+              onClick={() => setActiveTab("overview")}
               className={`px-6 py-3 font-medium ${
-                activeTab === 'overview'
-                  ? 'border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600'
-                  : 'text-gray-600 hover:text-verde-esmeralda-600'
+                activeTab === "overview"
+                  ? "border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600"
+                  : "text-gray-600 hover:text-verde-esmeralda-600"
               }`}
             >
               📊 Visão Geral
             </button>
             <button
-              onClick={() => setActiveTab('predios')}
+              onClick={() => setActiveTab("predios")}
               className={`px-6 py-3 font-medium ${
-                activeTab === 'predios'
-                  ? 'border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600'
-                  : 'text-gray-600 hover:text-verde-esmeralda-600'
+                activeTab === "predios"
+                  ? "border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600"
+                  : "text-gray-600 hover:text-verde-esmeralda-600"
               }`}
             >
               🏢 Prédios ({totalPredios})
             </button>
             <button
-              onClick={() => setActiveTab('financeiro')}
+              onClick={() => setActiveTab("financeiro")}
               className={`px-6 py-3 font-medium ${
-                activeTab === 'financeiro'
-                  ? 'border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600'
-                  : 'text-gray-600 hover:text-verde-esmeralda-600'
+                activeTab === "financeiro"
+                  ? "border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600"
+                  : "text-gray-600 hover:text-verde-esmeralda-600"
               }`}
             >
               💰 Financeiro
             </button>
             <button
-              onClick={() => setActiveTab('relatorios')}
+              onClick={() => setActiveTab("relatorios")}
               className={`px-6 py-3 font-medium ${
-                activeTab === 'relatorios'
-                  ? 'border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600'
-                  : 'text-gray-600 hover:text-verde-esmeralda-600'
+                activeTab === "relatorios"
+                  ? "border-b-2 border-verde-esmeralda-500 text-verde-esmeralda-600"
+                  : "text-gray-600 hover:text-verde-esmeralda-600"
               }`}
             >
               📈 Relatórios
@@ -192,12 +210,12 @@ export default function Home() {
 
           <div className="p-6">
             {/* Aba Overview */}
-            {activeTab === 'overview' && (
+            {activeTab === "overview" && (
               <div>
                 <h2 className="text-2xl font-bold text-verde-esmeralda-800 mb-6">
                   Visão Geral do Sistema
                 </h2>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                   <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
                     <div className="flex items-center justify-between">
@@ -240,7 +258,7 @@ export default function Home() {
                       Comece cadastrando seu primeiro prédio para usar o sistema
                     </p>
                     <button
-                      onClick={() => setActiveTab('predios')}
+                      onClick={() => setActiveTab("predios")}
                       className="bg-verde-esmeralda-600 text-white px-6 py-3 rounded-lg hover:bg-verde-esmeralda-700"
                     >
                       Cadastrar Primeiro Prédio
@@ -266,7 +284,8 @@ export default function Home() {
                           </p>
                           <div className="flex justify-between text-sm">
                             <span className="text-gray-500">
-                              {predio._count.unidades} / {predio.quantidadeUnidades} unidades
+                              {predio._count.unidades} /{" "}
+                              {predio.quantidadeUnidades} unidades
                             </span>
                             {predio.nomeSindico && (
                               <span className="text-verde-esmeralda-600 font-medium">
@@ -283,7 +302,7 @@ export default function Home() {
             )}
 
             {/* Aba Prédios */}
-            {activeTab === 'predios' && (
+            {activeTab === "predios" && (
               <div>
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-2xl font-bold text-verde-esmeralda-800">
@@ -293,7 +312,7 @@ export default function Home() {
                     onClick={() => setShowForm(!showForm)}
                     className="bg-verde-esmeralda-600 text-white px-4 py-2 rounded-lg hover:bg-verde-esmeralda-700"
                   >
-                    {showForm ? '✕ Cancelar' : '+ Novo Prédio'}
+                    {showForm ? "✕ Cancelar" : "+ Novo Prédio"}
                   </button>
                 </div>
 
@@ -303,122 +322,37 @@ export default function Home() {
                     <h3 className="text-lg font-semibold text-verde-esmeralda-800 mb-4">
                       Cadastrar Novo Prédio
                     </h3>
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Nome do Prédio *
-                        </label>
-                        <input
-                          type="text"
-                          value={novoPredio.nome}
-                          onChange={(e) => setNovoPredio({...novoPredio, nome: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          required
-                          placeholder="Ex: Edifício Central"
-                        />
-                      </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          CNPJ
-                        </label>
-                        <input
-                          type="text"
-                          value={novoPredio.cnpj}
-                          onChange={(e) => setNovoPredio({...novoPredio, cnpj: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          placeholder="00.000.000/0000-00"
-                        />
-                      </div>
+                    <PredioForm
+                      onSubmit={async (values: PredioFormValues) => {
+                        const payload = {
+                          ...values,
+                          cnpj: values.cnpj?.trim() || undefined,
+                          dataFundacao:
+                            values.dataFundacao?.trim() || undefined,
+                          nomeSindico: values.nomeSindico?.trim() || undefined,
+                          telefoneSindico:
+                            values.telefoneSindico?.trim() || undefined,
+                          emailSindico:
+                            values.emailSindico?.trim() || undefined,
+                        };
 
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-1">
-                          Endereço *
-                        </label>
-                        <input
-                          type="text"
-                          value={novoPredio.endereco}
-                          onChange={(e) => setNovoPredio({...novoPredio, endereco: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          required
-                          placeholder="Rua, número, bairro, cidade"
-                        />
-                      </div>
+                        const res = await fetch("/api/predios", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                        });
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Quantidade de Unidades
-                        </label>
-                        <input
-                          type="number"
-                          value={novoPredio.quantidadeUnidades}
-                          onChange={(e) => setNovoPredio({...novoPredio, quantidadeUnidades: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          placeholder="Ex: 24"
-                        />
-                      </div>
+                        if (!res.ok) {
+                          const err = await res.json().catch(() => ({}));
+                          throw new Error(err?.error || "Erro ao criar prédio");
+                        }
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Data de Fundação
-                        </label>
-                        <input
-                          type="date"
-                          value={novoPredio.dataFundacao}
-                          onChange={(e) => setNovoPredio({...novoPredio, dataFundacao: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Nome do Síndico
-                        </label>
-                        <input
-                          type="text"
-                          value={novoPredio.nomeSindico}
-                          onChange={(e) => setNovoPredio({...novoPredio, nomeSindico: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          placeholder="Nome completo"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Telefone do Síndico
-                        </label>
-                        <input
-                          type="tel"
-                          value={novoPredio.telefoneSindico}
-                          onChange={(e) => setNovoPredio({...novoPredio, telefoneSindico: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          placeholder="(00) 00000-0000"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-medium mb-1">
-                          Email do Síndico
-                        </label>
-                        <input
-                          type="email"
-                          value={novoPredio.emailSindico}
-                          onChange={(e) => setNovoPredio({...novoPredio, emailSindico: e.target.value})}
-                          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-verde-esmeralda-500"
-                          placeholder="sindico@exemplo.com"
-                        />
-                      </div>
-
-                      <div className="md:col-span-2">
-                        <button
-                          type="submit"
-                          disabled={submitLoading}
-                          className="bg-verde-esmeralda-600 text-white px-6 py-2 rounded-lg hover:bg-verde-esmeralda-700 disabled:opacity-50"
-                        >
-                          {submitLoading ? 'Criando...' : 'Criar Prédio'}
-                        </button>
-                      </div>
-                    </form>
+                        setShowForm(false);
+                        await carregarPredios();
+                      }}
+                      submitLabel="Criar Prédio"
+                    />
                   </div>
                 )}
 
@@ -436,7 +370,10 @@ export default function Home() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {predios.map((predio) => (
-                      <div key={predio.id} className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow">
+                      <div
+                        key={predio.id}
+                        className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100 hover:shadow-xl transition-shadow"
+                      >
                         <div className="p-6">
                           <div className="flex items-start justify-between mb-3">
                             <h3 className="text-xl font-bold text-verde-esmeralda-800">
@@ -459,14 +396,16 @@ export default function Home() {
                               </button>
                             </div>
                           </div>
-                          
+
                           <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                             📍 {predio.endereco}
                           </p>
-                          
+
                           <div className="space-y-2 mb-4">
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500 text-sm">Unidades:</span>
+                              <span className="text-gray-500 text-sm">
+                                Unidades:
+                              </span>
                               <div className="flex items-center gap-2">
                                 <span className="font-bold text-verde-esmeralda-700">
                                   {predio._count.unidades}
@@ -477,39 +416,49 @@ export default function Home() {
                                 </span>
                               </div>
                             </div>
-                            
+
                             {predio.nomeSindico && (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-500 text-sm">Síndico:</span>
+                                <span className="text-gray-500 text-sm">
+                                  Síndico:
+                                </span>
                                 <span className="font-medium text-verde-esmeralda-600 text-sm">
                                   {predio.nomeSindico}
                                 </span>
                               </div>
                             )}
-                            
+
                             {predio.telefoneSindico && (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-500 text-sm">Telefone:</span>
+                                <span className="text-gray-500 text-sm">
+                                  Telefone:
+                                </span>
                                 <span className="font-medium text-gray-600 text-sm">
                                   {predio.telefoneSindico}
                                 </span>
                               </div>
                             )}
-                            
+
                             {predio.cnpj && (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-500 text-sm">CNPJ:</span>
+                                <span className="text-gray-500 text-sm">
+                                  CNPJ:
+                                </span>
                                 <span className="font-mono text-gray-600 text-xs">
                                   {predio.cnpj}
                                 </span>
                               </div>
                             )}
-                            
+
                             {predio.dataFundacao && (
                               <div className="flex justify-between items-center">
-                                <span className="text-gray-500 text-sm">Fundação:</span>
+                                <span className="text-gray-500 text-sm">
+                                  Fundação:
+                                </span>
                                 <span className="font-medium text-gray-600 text-sm">
-                                  {new Date(predio.dataFundacao).toLocaleDateString('pt-BR')}
+                                  {new Date(
+                                    predio.dataFundacao
+                                  ).toLocaleDateString("pt-BR")}
                                 </span>
                               </div>
                             )}
@@ -532,7 +481,7 @@ export default function Home() {
             )}
 
             {/* Aba Financeiro */}
-            {activeTab === 'financeiro' && (
+            {activeTab === "financeiro" && (
               <div>
                 <h2 className="text-2xl font-bold text-verde-esmeralda-800 mb-6">
                   Gestão Financeira
@@ -550,7 +499,7 @@ export default function Home() {
             )}
 
             {/* Aba Relatórios */}
-            {activeTab === 'relatorios' && (
+            {activeTab === "relatorios" && (
               <div>
                 <h2 className="text-2xl font-bold text-verde-esmeralda-800 mb-6">
                   Relatórios
@@ -575,8 +524,8 @@ export default function Home() {
             predio={predioEditando}
             onClose={() => setPredioEditando(null)}
             onUpdate={() => {
-              carregarPredios()
-              setPredioEditando(null)
+              carregarPredios();
+              setPredioEditando(null);
             }}
           />
         )}
@@ -591,5 +540,5 @@ export default function Home() {
         )}
       </div>
     </main>
-  )
+  );
 }

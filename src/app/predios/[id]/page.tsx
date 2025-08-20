@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useSearchParams } from 'next/navigation'
+import TabUnidades from '@/components/TabUnidades'
 
 type TabKey = 'unidades' | 'financeiro' | 'comunicados' | 'relatorios'
 
@@ -128,25 +129,7 @@ export default function PredioDashboardPage() {
         <Tabs tab={tab} onChange={setTab} />
 
         <div className="mt-6">
-          {tab === 'unidades' && (
-            <TabUnidades
-              predioId={params.id}
-              itens={unidades}
-              onRefresh={async () => {
-                setSaving(true)
-                try {
-                  const res = await fetch(`/api/predios/${params.id}/unidades`)
-                  if (res.ok) {
-                    const data = await res.json()
-                    setUnidades(data)
-                  }
-                } finally {
-                  setSaving(false)
-                }
-              }}
-              loading={saving}
-            />
-          )}
+          
 
           {tab === 'financeiro' && <Placeholder title="Financeiro" subtitle="Em breve: composição mensal, cobranças, pagamentos e relatórios." />}
           {tab === 'comunicados' && <Placeholder title="Comunicados" subtitle="Envio de avisos por unidade/condomínio, histórico e categorias." />}
@@ -199,75 +182,8 @@ function Placeholder({ title, subtitle }: { title: string; subtitle: string }) {
   )
 }
 
-function TabUnidades({ predioId, itens, onRefresh, loading }: { predioId: string; itens: Unidade[]; onRefresh: () => Promise<void>; loading: boolean }) {
-  return (
-    <section className="bg-white rounded-xl shadow-sm p-4">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between mb-4">
-        <h2 className="text-lg font-semibold text-verde-esmeralda-800">Unidades</h2>
-        <div className="flex gap-2">
-          <Link href={`/predios/${predioId}/unidades`} className="px-4 py-2 rounded-lg bg-verde-esmeralda-600 text-white hover:bg-verde-esmeralda-700">+ Nova Unidade</Link>
-          <button onClick={onRefresh} disabled={loading} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-60">
-            {loading ? 'Atualizando…' : 'Atualizar'}
-          </button>
-        </div>
-      </div>
 
-      {itens.length === 0 ? (
-        <div className="p-10 text-center text-gray-600 bg-gray-50 rounded-lg border border-dashed">Nenhuma unidade cadastrada.</div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-gray-500 border-b">
-                <th className="py-2 pr-4">Número</th>
-                <th className="py-2 pr-4">Tipo</th>
-                <th className="py-2 pr-4">Metragem</th>
-                <th className="py-2 pr-4">Responsável</th>
-                <th className="py-2 pr-4">Status</th>
-                <th className="py-2 pr-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itens.map(u => {
-                const responsavelAtivo = u.responsaveis?.find(r => r.ativo)
-                return (
-                  <tr key={u.id} className="border-b last:border-0">
-                    <td className="py-2 pr-4 font-medium text-gray-800">{u.numero}</td>
-                    <td className="py-2 pr-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-verde-esmeralda-100 text-verde-esmeralda-800">
-                        {getTipoLabel(u.tipo)}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-4">{u.metragem ? `${u.metragem} m²` : '—'}</td>
-                    <td className="py-2 pr-4">
-                      {responsavelAtivo ? (
-                        <div>
-                          <div className="font-medium text-gray-800">{responsavelAtivo.nome}</div>
-                          <div className="text-xs text-gray-500">{getTipoResponsavel(responsavelAtivo.tipo)}</div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">Sem responsável</span>
-                      )}
-                    </td>
-                    <td className="py-2 pr-4"><StatusPill status={u.status} /></td>
-                    <td className="py-2 pr-0 text-right">
-                      <Link 
-                        href={`/predios/${predioId}/unidades`} 
-                        className="text-verde-esmeralda-600 hover:text-verde-esmeralda-800 font-medium"
-                      >
-                        Gerenciar
-                      </Link>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  )
-}
+
 
 function StatusPill({ status }: { status: string }) {
   const statusMap: Record<string, { label: string; className: string }> = {

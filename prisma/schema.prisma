@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,112 +7,165 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/* ===== Enums ===== */
+enum UnidadeTipo {
+  APARTAMENTO
+  COBERTURA
+  LOJA
+  GARAGEM
+}
+
+enum UnidadeStatus {
+  OCUPADO
+  VAZIO
+}
+
+enum ResponsavelTipo {
+  PROPRIETARIO
+  INQUILINO
+}
+
+enum ManutencaoStatus {
+  ATIVA
+  CONCLUIDA
+  CANCELADA
+}
+
+enum PagamentoTipo {
+  TAXA_MENSAL
+  MANUTENCAO
+}
+
+enum PagamentoStatus {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
+
+/* ===== Models ===== */
+
 model Predio {
-  id                String   @id @default(cuid())
-  nome              String
-  endereco          String
-  cnpj              String?  @unique
+  id                 String   @id @default(cuid())
+  nome               String
+  endereco           String
+  cnpj               String?  @unique
   quantidadeUnidades Int
-  dataFundacao      DateTime?
-  nomeSindico       String?
-  telefoneSindico   String?
-  emailSindico      String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  dataFundacao       DateTime?
+  nomeSindico        String?
+  telefoneSindico    String?
+  emailSindico       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
   // Relacionamentos
-  unidades          Unidade[]
-  manutencoes       Manutencao[]
-  comunicados       Comunicado[]
+  unidades     Unidade[]
+  manutencoes  Manutencao[]
+  comunicados  Comunicado[]
 }
 
 model Unidade {
-  id            String   @id @default(cuid())
-  numero        String
-  tipo          String   @default("apartamento") // apartamento, cobertura, loja, garagem
-  metragem      Float?
-  fracaoIdeal   Float?
-  status        String   @default("ocupado") // ocupado, vazio
-  valorTaxa     Float    @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  id           String         @id @default(cuid())
+  numero       String
+  numeroInt    Int?                      // ordenação natural (1,2,3,10,11…)
+  tipo         UnidadeTipo    @default(APARTAMENTO)
+  metragem     Float?
+  fracaoIdeal  Float?
+  status       UnidadeStatus  @default(OCUPADO)
+  valorTaxa    Decimal        @db.Decimal(14,2) @default(0) // dinheiro => Decimal
+  ativo        Boolean        @default(true)    // soft-delete
+  deletedAt    DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
   // Relacionamentos
-  predio        Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
-  predioId      String
-  responsaveis  Responsavel[]
-  pagamentos    Pagamento[]
-  
+  predio       Predio         @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  predioId     String
+  responsaveis Responsavel[]
+  pagamentos   Pagamento[]
+
   @@unique([predioId, numero])
+  @@index([predioId, numeroInt])
+  @@index([predioId, ativo])
 }
 
 model Responsavel {
-  id            String   @id @default(cuid())
-  nome          String
-  cpfCnpj       String
-  telefone      String?
-  whatsapp      String?
-  email         String?
-  tipo          String   @default("proprietario") // proprietario, inquilino
-  dataInicio    DateTime @default(now())
-  dataFim       DateTime?
-  ativo         Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  id                String           @id @default(cuid())
+  nome              String
+  cpfCnpj           String
+  telefone          String?
+  whatsapp          String?
+  email             String?
+  tipo              ResponsavelTipo  @default(PROPRIETARIO) // proprietario / inquilino
+  ehTitularCobranca Boolean          @default(false)        // quem recebe a cobrança
+  dataInicio        DateTime         @default(now())
+  dataFim           DateTime?
+  ativo             Boolean          @default(true)         // soft-delete / desativação
+  deletedAt         DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
   // Relacionamentos
-  unidade       Unidade  @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
-  unidadeId     String
+  unidade   Unidade  @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  unidadeId String
+
+  @@index([unidadeId, ativo])
+  @@index([unidadeId, ehTitularCobranca, ativo])
+  // Observação: "apenas 1 titular por unidade" precisa ser garantido na API (índice parcial não é suportado nativo no Prisma).
 }
 
 model Manutencao {
-  id            String   @id @default(cuid())
-  nome          String
-  descricao     String?
-  valorTotal    Float
+  id             String            @id @default(cuid())
+  nome           String
+  descricao      String?
+  valorTotal     Decimal           @db.Decimal(14,2)
   numeroParcelas Int
-  valorParcela  Float
-  dataInicio    DateTime
-  dataFim       DateTime?
-  status        String   @default("ativa") // ativa, concluida, cancelada
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  valorParcela   Decimal           @db.Decimal(14,2)
+  dataInicio     DateTime
+  dataFim        DateTime?
+  status         ManutencaoStatus  @default(ATIVA)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
   // Relacionamentos
-  predio        Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
-  predioId      String
-  pagamentos    Pagamento[]
+  predio      Predio     @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  predioId    String
+  pagamentos  Pagamento[]
 }
 
 model Pagamento {
-  id            String   @id @default(cuid())
-  tipo          String   // "taxa_mensal", "manutencao"
-  valor         Float
+  id             String           @id @default(cuid())
+  tipo           PagamentoTipo
+  valor          Decimal          @db.Decimal(14,2)
+  competencia    DateTime?        // 1º dia do mês de referência (para TAXA_MENSAL)
   dataVencimento DateTime
-  dataPagamento DateTime?
-  status        String   @default("pendente") // pendente, pago, atrasado
-  numeroParcela Int?     // para manutenções
-  observacao    String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  dataPagamento  DateTime?
+  status         PagamentoStatus  @default(PENDENTE)
+  numeroParcela  Int?             // para manutenções
+  observacao     String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
   // Relacionamentos
-  unidade       Unidade  @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
-  unidadeId     String
-  manutencao    Manutencao? @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
-  manutencaoId  String?
+  unidade      Unidade    @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  unidadeId    String
+  manutencao   Manutencao? @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
+  manutencaoId String?
+
+  @@index([unidadeId, competencia])
+  @@index([status, dataVencimento])
 }
 
 model Comunicado {
-  id            String   @id @default(cuid())
-  titulo        String
-  conteudo      String
+  id             String   @id @default(cuid())
+  titulo         String
+  conteudo       String
   dataPublicacao DateTime @default(now())
-  ativo         Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  ativo          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
   // Relacionamentos
-  predio        Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
-  predioId      String
+  predio   Predio  @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  predioId String
 }
