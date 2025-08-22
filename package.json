@@ -8,10 +8,11 @@
     "start": "next start"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.7",
     "@hookform/resolvers": "^5.2.1",
     "@prisma/client": "^6.14.0",
     "@types/pg": "^8.15.5",
-    "next": "15.4.6",
+    "next": "^15.5.0",
     "pg": "^8.16.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -19,13 +20,15 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^22.7.5",
-    "@types/react": "^18.3.11",
+    "@types/node": "^22.17.2",
+    "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",
+    "eslint": "9.33.0",
+    "eslint-config-next": "15.5.0",
     "postcss": "^8.4.47",
     "prisma": "^6.14.0",
     "tailwindcss": "^3.4.14",
-    "typescript": "^5.6.3"
+    "typescript": "^5.9.2"
   }
 }

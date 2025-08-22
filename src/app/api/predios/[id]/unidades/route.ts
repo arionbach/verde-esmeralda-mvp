@@ -88,7 +88,7 @@ export async function GET(
     const status = searchParams.get('status')
     const tipo = searchParams.get('tipo')
     
-    // Busca as unidades com responsáveis ativos
+    // Busca as unidades com responsáveis ativoss
     const unidades = await prisma.unidade.findMany({
       where: {
         predioId,
