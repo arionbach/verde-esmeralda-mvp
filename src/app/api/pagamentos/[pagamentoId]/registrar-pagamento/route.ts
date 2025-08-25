@@ -1,6 +1,8 @@
+// src/app/api/pagamentos/[pagamentoId]/registrar-pagamento/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import type { Pagamento } from '@prisma/client'
 
 const BodySchema = z.object({
   dataPagamento: z.coerce.date(),
@@ -20,9 +22,12 @@ export async function POST(
     }
 
     const pg = await prisma.pagamento.findUnique({ where: { id: pagamentoId } })
-    if (!pg) return NextResponse.json({ error: 'Pagamento não encontrado' }, { status: 404 })
+    if (!pg) {
+      return NextResponse.json({ error: 'Pagamento não encontrado' }, { status: 404 })
+    }
 
-    const status = parsed.data.valorPago + 1e-6 >= Number(pg.valor) ? 'PAGO' : 'PENDENTE'
+    const status: Pagamento['status'] =
+      parsed.data.valorPago + 1e-6 >= Number(pg.valor) ? 'PAGO' : 'PENDENTE'
 
     const updated = await prisma.pagamento.update({
       where: { id: pagamentoId },
@@ -30,7 +35,8 @@ export async function POST(
         dataPagamento: parsed.data.dataPagamento,
         valorPago: parsed.data.valorPago,
         status
-      }
+      },
+      select: { id: true, status: true, dataPagamento: true, valorPago: true }
     })
 
     return NextResponse.json({

@@ -1,18 +1,18 @@
+// src/app/api/predios/[id]/financeiro/gerar-mensal/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { PagamentoTipo, PagamentoStatus } from '@prisma/client'
-import prisma from '@/lib/prisma'
+import { PagamentoStatus, PagamentoTipo, Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 const QuerySchema = z.object({
   competencia: z.string().min(7), // 'YYYY-MM' ou 'YYYY-MM-01'
-  vencimentoDia: z.string().optional() // '10' (dia do mês). Opcional
+  vencimentoDia: z.string().optional() // '10'
 })
 
 function parseCompetencia(s: string) {
-  // aceita 'YYYY-MM' ou 'YYYY-MM-01'
   const [y, m] = s.split('-')
   const year = Number(y)
-  const month = Number(m) // 1..12
+  const month = Number(m)
   if (!year || !month) throw new Error('competencia inválida, use YYYY-MM')
   return new Date(Date.UTC(year, month - 1, 1))
 }
@@ -35,42 +35,48 @@ export async function POST(
     }
 
     const competencia = parseCompetencia(parsed.data.competencia)
-    const vencimento = computeVencimento(competencia, parsed.data.vencimentoDia ? Number(parsed.data.vencimentoDia) : undefined)
+    const vencimento = computeVencimento(
+      competencia,
+      parsed.data.vencimentoDia ? Number(parsed.data.vencimentoDia) : undefined
+    )
 
-    // valida prédio
     const predio = await prisma.predio.findUnique({ where: { id: predioId }, select: { id: true } })
     if (!predio) return NextResponse.json({ error: 'Prédio não encontrado' }, { status: 404 })
 
-    // busca unidades do prédio
     const unidades = await prisma.unidade.findMany({
       where: { predioId },
       select: { id: true, valorTaxa: true }
-    })
+    }) as Array<{ id: string; valorTaxa: Prisma.Decimal | number | null }>
 
-    // prepara payloads
-    const registros = unidades
-      .filter(u => u.valorTaxa && Number(u.valorTaxa) > 0)
-      .map(u => ({
+    const registros: Array<{
+      predioId: string
+      unidadeId: string
+      tipo: PagamentoTipo
+      competencia: Date
+      vencimento: Date
+      valor: Prisma.Decimal | number
+      status: PagamentoStatus
+    }> = unidades
+      .filter((u) => u.valorTaxa && Number(u.valorTaxa) > 0)
+      .map((u) => ({
         predioId,
         unidadeId: u.id,
-        tipo: 'TAXA_MENSAL' as const,
+        tipo: 'TAXA_MENSAL',
         competencia,
         vencimento,
-        valor: u.valorTaxa,
-        status: 'PENDENTE' as const
+        valor: u.valorTaxa as Prisma.Decimal | number,
+        status: 'PENDENTE'
       }))
 
     if (registros.length === 0) {
       return NextResponse.json({ created: 0, skipped: 0, message: 'Nenhuma unidade com valorTaxa > 0' })
     }
 
-    // idempotente via unique([unidadeId, competencia, tipo]) + skipDuplicates
     const result = await prisma.pagamento.createMany({
       data: registros,
       skipDuplicates: true
     })
 
-    // contagem do que já existia
     const skipped = registros.length - result.count
 
     return NextResponse.json({

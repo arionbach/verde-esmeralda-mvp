@@ -1,7 +1,8 @@
+// src/app/api/predios/[id]/financeiro/resumo/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { Decimal } from '@prisma/client/runtime/library'
+import type { PagamentoStatus, PagamentoTipo, Prisma } from '@prisma/client'
 
 const QuerySchema = z.object({
   competencia: z.string().min(7) // 'YYYY-MM' ou 'YYYY-MM-01'
@@ -15,9 +16,19 @@ function parseCompetencia(s: string) {
   return new Date(Date.UTC(year, month - 1, 1))
 }
 
-function dec(n: Decimal | number | null | undefined) {
-  if (!n) return 0
-  return Number(n)
+function dec(n: Prisma.Decimal | number | null | undefined): number {
+  if (n == null) return 0
+  return typeof n === 'number' ? n : Number(n)
+}
+
+type PgRow = {
+  id: string
+  unidadeId: string
+  valor: Prisma.Decimal | number
+  valorPago: Prisma.Decimal | number | null
+  status: PagamentoStatus
+  vencimento: Date
+  tipo: PagamentoTipo
 }
 
 export async function GET(
@@ -41,26 +52,26 @@ export async function GET(
         id: true, unidadeId: true, valor: true, valorPago: true, status: true, vencimento: true, tipo: true
       },
       orderBy: [{ vencimento: 'asc' }, { unidadeId: 'asc' }]
-    })
+    }) as PgRow[]
 
     const totalDevido = pagamentos
-      .filter(p => p.status === 'PENDENTE' || p.status === 'ATRASADO')
-      .reduce((s, p) => s + dec(p.valor), 0)
+      .filter((p) => p.status === 'PENDENTE' || p.status === 'ATRASADO')
+      .reduce<number>((s, p) => s + dec(p.valor), 0)
 
     const totalRecebido = pagamentos
-      .filter(p => p.status === 'PAGO')
-      .reduce((s, p) => s + (p.valorPago ? dec(p.valorPago) : dec(p.valor)), 0)
+      .filter((p) => p.status === 'PAGO')
+      .reduce<number>((s, p) => s + (p.valorPago != null ? dec(p.valorPago) : dec(p.valor)), 0)
 
     const qtd = pagamentos.length
-    const pendentes = pagamentos.filter(p => p.status === 'PENDENTE')
-    const atrasadosCalc = pagamentos.filter(p => (p.status === 'PENDENTE' && p.vencimento < hoje) || p.status === 'ATRASADO')
-    const inadimplentes = new Set(atrasadosCalc.map(p => p.unidadeId)).size
+    const atrasadosCalc = pagamentos.filter(
+      (p) => (p.status === 'PENDENTE' && p.vencimento < hoje) || p.status === 'ATRASADO'
+    )
+    const inadimplentes = new Set(atrasadosCalc.map((p) => p.unidadeId)).size
     const inadimplenciaPct = qtd ? Number(((atrasadosCalc.length / qtd) * 100).toFixed(1)) : 0
 
-    // lista simples de pendências/atrasos
     const pendencias = pagamentos
-      .filter(p => p.status !== 'PAGO')
-      .map(p => ({
+      .filter((p) => p.status !== 'PAGO')
+      .map((p) => ({
         id: p.id,
         unidadeId: p.unidadeId,
         valor: dec(p.valor),

@@ -1,12 +1,12 @@
 // src/app/api/unidades/[id]/route.ts
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import prisma from "@/lib/prisma";
+import { prisma } from '@/lib/prisma'
 import { ok, noContent, bad, fail, notFound, conflict } from "../../_utils";
 import { Prisma } from "@prisma/client";
 
 const TipoEnum = z.enum(["APARTAMENTO", "COBERTURA", "LOJA", "GARAGEM"]);
-const StatusEnum = z.enum(["OCUPADA", "VAZIA", "ALUGADA", "INADIMPLENTE"]);
+const StatusEnum = z.enum(["OCUPADO", "VAZIO", "ALUGADO", "INADIMPLENTE"]);
 
 const toNumNull = z.preprocess((v) => {
   if (v === "" || v == null) return null;
@@ -50,7 +50,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         status: data.status,
         metragem: data.metragem,
         fracaoIdeal: data.fracaoIdeal,
-        valorTaxa: data.valorTaxa,
+        valorTaxa: data.valorTaxa === null ? undefined : data.valorTaxa,
         observacoes: data.observacoes ?? null,
       },
     });
