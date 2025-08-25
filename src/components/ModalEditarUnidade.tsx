@@ -3,20 +3,12 @@
 
 import { useState } from 'react'
 
-interface Unidade {
-  id: string
-  numero: string
-  tipo: 'apartamento' | 'cobertura' | 'loja' | 'garagem'  // ✅ Corrigido para union type
-  metragem: number | null
-  fracaoIdeal: number | null
-  valorTaxa: number
-  status: 'ocupado' | 'vazio'  // ✅ Corrigido para union type
-}
+import type { UnidadeDTO, UnidadeUpdateInput } from '@/types/unidade'
 
 interface ModalEditarUnidadeProps {
-  unidade: Unidade
+  unidade: UnidadeDTO
   onClose: () => void
-  onSave: (unidadeAtualizada: Partial<Unidade>) => Promise<void>
+  onSave: (unidadeAtualizada: UnidadeUpdateInput) => Promise<void>
 }
 
 export default function ModalEditarUnidade({ unidade, onClose, onSave }: ModalEditarUnidadeProps) {

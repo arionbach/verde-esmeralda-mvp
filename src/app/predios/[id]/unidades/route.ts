@@ -1,23 +1,27 @@
-import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
-import { PagamentoStatus } from "@prisma/client"
+import { NextRequest, NextResponse } from 'next/server'
+import prisma from '@/lib/prisma'
+import { PagamentoStatus } from '@prisma/client'
 
 export async function GET(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Next 15: params é Promise — precisa de await
     const { id: predioId } = await ctx.params
 
-    // Busca unidades do prédio
     const unidades = await prisma.unidade.findMany({
       where: { predioId, ativo: true },
       include: {
         responsaveis: {
           where: { ativo: true },
-          orderBy: { dataInicio: "desc" },
-          select: { id: true, nome: true, tipo: true, telefone: true, email: true },
+          orderBy: { dataInicio: 'desc' },
+          select: {
+            id: true,
+            nome: true,
+            tipo: true,
+            telefone: true,
+            email: true,
+          },
           take: 1,
         },
         pagamentos: {
@@ -25,10 +29,9 @@ export async function GET(
           select: { id: true },
         },
       },
-      orderBy: [{ numero: "asc" }],
+      orderBy: [{ numeroInt: 'asc' }, { numero: 'asc' }],
     })
 
-    // Serializa tipos Prisma (Decimal/Date) e simplifica resposta
     const data = unidades.map((u) => ({
       id: u.id,
       numero: u.numero,
@@ -44,7 +47,7 @@ export async function GET(
 
     return NextResponse.json(data, { status: 200 })
   } catch (e) {
-    console.error("[PREDIOS][ID][UNIDADES][GET] erro:", e)
-    return NextResponse.json({ error: "Erro interno" }, { status: 500 })
+    console.error('[GET /api/predios/[id]/unidades] erro:', e)
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 })
   }
 }

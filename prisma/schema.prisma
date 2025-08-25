@@ -7,9 +7,122 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/**
- * ===== Enums =====
- */
+model Predio {
+  id                 String       @id @default(cuid())
+  nome               String
+  endereco           String
+  cnpj               String?      @unique
+  quantidadeUnidades Int
+  dataFundacao       DateTime?
+  nomeSindico        String?
+  telefoneSindico    String?
+  emailSindico       String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  comunicados        Comunicado[]
+  manutencoes        Manutencao[]
+  unidades           Unidade[]
+}
+
+model Unidade {
+  id          String        @id @default(cuid())
+  numero      String
+  metragem    Float?
+  fracaoIdeal Float?
+  valorTaxa   Decimal       @default(0) @db.Decimal(14, 2)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  predioId    String
+  ativo       Boolean       @default(true)
+  deletedAt   DateTime?
+  numeroInt   Int?
+  tipo        UnidadeTipo   @default(APARTAMENTO)
+  status      UnidadeStatus @default(OCUPADO)
+  pagamentos  Pagamento[]
+  responsaveis Responsavel[]
+  predio      Predio        @relation(fields: [predioId], references: [id], onDelete: Cascade)
+
+  @@unique([predioId, numero])
+  @@index([predioId, ativo])
+  @@index([predioId, numeroInt])
+  @@map("Unidade")
+}
+
+model Responsavel {
+  id                String          @id @default(cuid())
+  nome              String
+  cpfCnpj           String
+  telefone          String?
+  whatsapp          String?
+  email             String?
+  dataInicio        DateTime        @default(now())
+  dataFim           DateTime?
+  ativo             Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  unidadeId         String
+  deletedAt         DateTime?
+  ehTitularCobranca Boolean         @default(false)
+  tipo              ResponsavelTipo @default(PROPRIETARIO)
+  unidade           Unidade         @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  @@index([unidadeId, ativo])
+  @@index([unidadeId, ehTitularCobranca, ativo])
+}
+
+model Manutencao {
+  id             String           @id @default(cuid())
+  nome           String
+  descricao      String?
+  valorTotal     Decimal          @db.Decimal(14, 2)
+  numeroParcelas Int
+  valorParcela   Decimal          @db.Decimal(14, 2)
+  dataInicio     DateTime
+  dataFim        DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  predioId       String
+  status         ManutencaoStatus @default(ATIVA)
+  predio         Predio           @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  pagamentos     Pagamento[]
+}
+
+model Pagamento {
+  id            String          @id @default(cuid())
+  valor         Decimal         @db.Decimal(14, 2)
+  vencimento    DateTime        @map("dataVencimento")
+  dataPagamento DateTime?       @map("dataPagamento")
+  numeroParcela Int?
+  observacao    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  unidadeId     String
+  manutencaoId  String?
+  competencia   DateTime?
+  tipo          PagamentoTipo
+  status        PagamentoStatus @default(PENDENTE)
+  manutencao    Manutencao?     @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
+  unidade       Unidade         @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  @@index([unidadeId, competencia])
+  @@index([status, vencimento])
+  @@map("Pagamento")
+}
+
+model Comunicado {
+  id             String   @id @default(cuid())
+  titulo         String
+  conteudo       String
+  dataPublicacao DateTime @default(now())
+  ativo          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  predioId       String
+  predio         Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
+}
+
+// 
+// ===== Enums =====
 enum UnidadeTipo {
   APARTAMENTO
   COBERTURA
@@ -43,133 +156,4 @@ enum PagamentoStatus {
   PAGO
   ATRASADO
   CANCELADO
-}
-
-/**
- * ===== Models =====
- */
-
-model Predio {
-  id                 String    @id @default(cuid())
-  nome               String
-  endereco           String
-  cnpj               String?   @unique
-  quantidadeUnidades Int
-  dataFundacao       DateTime?
-  nomeSindico        String?
-  telefoneSindico    String?
-  emailSindico       String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-
-  // Relacionamentos
-  unidades    Unidade[]
-  manutencoes Manutencao[]
-  comunicados Comunicado[]
-}
-
-model Unidade {
-  id          String        @id @default(cuid())
-  numero      String
-  numeroInt   Int? // ordenação natural (1,2,3,10,11…)
-  tipo        UnidadeTipo   @default(APARTAMENTO)
-  metragem    Float?
-  fracaoIdeal Float?
-  status      UnidadeStatus @default(OCUPADO)
-  valorTaxa   Decimal       @default(0) @db.Decimal(14, 2) // dinheiro => Decimal
-  ativo       Boolean       @default(true) // soft-delete
-  deletedAt   DateTime?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  // Relacionamentos
-  predio       Predio        @relation(fields: [predioId], references: [id], onDelete: Cascade)
-  predioId     String
-  responsaveis Responsavel[]
-  pagamentos   Pagamento[]
-
-  @@unique([predioId, numero])
-  @@index([predioId, numeroInt])
-  @@index([predioId, ativo])
-}
-
-model Responsavel {
-  id                String          @id @default(cuid())
-  nome              String
-  cpfCnpj           String
-  telefone          String?
-  whatsapp          String?
-  email             String?
-  tipo              ResponsavelTipo @default(PROPRIETARIO) // proprietario / inquilino
-  ehTitularCobranca Boolean         @default(false) // quem recebe a cobrança
-  dataInicio        DateTime        @default(now())
-  dataFim           DateTime?
-  ativo             Boolean         @default(true) // soft-delete / desativação
-  deletedAt         DateTime?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-
-  // Relacionamentos
-  unidade   Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
-  unidadeId String
-  // Observação: "apenas 1 titular por unidade" precisa ser garantido na API (índice parcial não é suportado nativo no Prisma).
-
-  @@index([unidadeId, ativo])
-  @@index([unidadeId, ehTitularCobranca, ativo])
-}
-
-model Manutencao {
-  id             String           @id @default(cuid())
-  nome           String
-  descricao      String?
-  valorTotal     Decimal          @db.Decimal(14, 2)
-  numeroParcelas Int
-  valorParcela   Decimal          @db.Decimal(14, 2)
-  dataInicio     DateTime
-  dataFim        DateTime?
-  status         ManutencaoStatus @default(ATIVA)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-
-  // Relacionamentos
-  predio     Predio      @relation(fields: [predioId], references: [id], onDelete: Cascade)
-  predioId   String
-  pagamentos Pagamento[]
-}
-
-model Pagamento {
-  id             String          @id @default(cuid())
-  tipo           PagamentoTipo
-  valor          Decimal         @db.Decimal(14, 2)
-  competencia    DateTime? // 1º dia do mês de referência (para TAXA_MENSAL)
-  dataVencimento DateTime
-  dataPagamento  DateTime?
-  status         PagamentoStatus @default(PENDENTE)
-  numeroParcela  Int? // para manutenções
-  observacao     String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-
-  // Relacionamentos
-  unidade      Unidade     @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
-  unidadeId    String
-  manutencao   Manutencao? @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
-  manutencaoId String?
-
-  @@index([unidadeId, competencia])
-  @@index([status, dataVencimento])
-}
-
-model Comunicado {
-  id             String   @id @default(cuid())
-  titulo         String
-  conteudo       String
-  dataPublicacao DateTime @default(now())
-  ativo          Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Relacionamentos
-  predio   Predio @relation(fields: [predioId], references: [id], onDelete: Cascade)
-  predioId String
 }

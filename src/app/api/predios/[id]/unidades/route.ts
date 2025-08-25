@@ -1,6 +1,6 @@
 // src/app/api/predios/[id]/unidades/route.ts
 import { NextRequest } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { UnidadeCreateSchema } from '../../../_schemas'
 import { 
   ok, 
@@ -113,14 +113,14 @@ export async function GET(
         pagamentos: {
           where: {
             status: 'PENDENTE',
-            dataVencimento: {
+            vencimento: {
               lt: new Date() // Vencidos
             }
           },
           select: {
             id: true,
             valor: true,
-            dataVencimento: true
+            vencimento: true
           }
         }
       },

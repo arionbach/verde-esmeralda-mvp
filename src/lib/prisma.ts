@@ -1,47 +1,40 @@
 // src/lib/prisma.ts
 import { PrismaClient } from '@prisma/client'
 
-// Evita múltiplas instâncias em desenvolvimento (hot reload)
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
+// Evita múltiplas instâncias no hot-reload (Next.js)
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
-const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  log: process.env.NODE_ENV === 'development' 
-    ? ['query', 'error', 'warn'] 
-    : ['error'],
-})
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    // log: ['query', 'error', 'warn'], // opcional
+  })
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
-
-export default prisma
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 /**
- * Testa a conexão com o banco de dados
- * @returns {Promise<boolean>} true se conectou com sucesso
+ * Testa a conexão sem interferir no cliente compartilhado
+ * (usa um cliente efêmero)
  */
 export async function testConnection(): Promise<boolean> {
+  const tmp = new PrismaClient()
   try {
-    await prisma.$connect()
+    await tmp.$connect()
     console.log('✅ Conectado ao PostgreSQL com sucesso!')
-    
-    // Testa uma query simples
-    const count = await prisma.predio.count()
+
+    const count = await tmp.predio.count()
     console.log(`📊 Total de prédios no banco: ${count}`)
-    
     return true
   } catch (error) {
     console.error('❌ Erro ao conectar com o banco:', error)
     return false
   } finally {
-    await prisma.$disconnect()
+    await tmp.$disconnect() // fecha só o cliente efêmero
   }
 }
 
 /**
- * Verifica saúde do banco e retorna estatísticas
+ * Estatísticas rápidas do banco
  */
 export async function getDatabaseStats() {
   try {
@@ -58,7 +51,7 @@ export async function getDatabaseStats() {
         unidades,
         responsaveis,
         timestamp: new Date().toISOString(),
-      }
+      },
     }
   } catch (error) {
     return {
