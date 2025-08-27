@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import TabUnidades from "@/components/TabUnidades";
+import FinanceiroTab from "@/components/predios/FinanceiroTab";
 
 type TabKey = "unidades" | "financeiro" | "comunicados" | "relatorios";
 

@@ -4,8 +4,7 @@ import { PrismaClient } from '@prisma/client'
 // Evita múltiplas instâncias no hot-reload (Next.js)
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
-export const prisma =
-  globalForPrisma.prisma ??
+export const prisma = globalForPrisma.prisma ??
   new PrismaClient({
     // log: ['query', 'error', 'warn'], // opcional
   })
