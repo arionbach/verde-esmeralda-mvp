@@ -1,96 +1,102 @@
 // src/app/api/predios/[id]/financeiro/resumo/route.ts
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { isValidUUID, bad, ok, handlePrismaError } from '@/app/api/_utils'
+import { startOfMonth, endOfMonth, parse } from 'date-fns'
 import { z } from 'zod'
-import type { PagamentoStatus, PagamentoTipo, Prisma } from '@prisma/client'
 
 const QuerySchema = z.object({
-  competencia: z.string().min(7) // 'YYYY-MM' ou 'YYYY-MM-01'
+  competencia: z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM'),
 })
 
-function parseCompetencia(s: string) {
-  const [y, m] = s.split('-')
-  const year = Number(y)
-  const month = Number(m)
-  if (!year || !month) throw new Error('competencia inválida, use YYYY-MM')
-  return new Date(Date.UTC(year, month - 1, 1))
-}
+type Ctx = { params: Promise<{ id: string }> }
 
-function dec(n: Prisma.Decimal | number | null | undefined): number {
-  if (n == null) return 0
-  return typeof n === 'number' ? n : Number(n)
-}
-
-type PgRow = {
-  id: string
-  unidadeId: string
-  valor: Prisma.Decimal | number
-  valorPago: Prisma.Decimal | number | null
-  status: PagamentoStatus
-  vencimento: Date
-  tipo: PagamentoTipo
-}
-
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, { params }: Ctx) {
   try {
     const { id: predioId } = await params
-    const url = new URL(req.url)
-    const parsed = QuerySchema.safeParse(Object.fromEntries(url.searchParams.entries()))
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
-    }
+    if (!isValidUUID(predioId)) return bad('ID inválido')
 
-    const competencia = parseCompetencia(parsed.data.competencia)
+    const { searchParams } = new URL(req.url)
+    const parsed = QuerySchema.safeParse(Object.fromEntries(searchParams))
+    if (!parsed.success) return bad('Competência inválida. Use YYYY-MM')
+
+    const competenciaStr = parsed.data.competencia
+    const competencia = parse(competenciaStr, 'yyyy-MM', new Date())
+    if (isNaN(competencia.getTime())) return bad('Competência inválida. Use YYYY-MM')
+
+    const inicio = startOfMonth(competencia)
+    const fim = endOfMonth(competencia)
+
+    // Buscamos os pagamentos da competência do prédio
+    const pagamentos = await prisma.pagamento.findMany({
+      where: {
+        // se preferir e seu schema já tem predioId em Pagamento:
+        // predioId,
+        unidade: { predioId },
+        competencia: { gte: inicio, lte: fim },
+      },
+      select: {
+        id: true,
+        unidadeId: true,
+        valor: true,
+        status: true,
+        vencimento: true,
+        dataPagamento: true,
+      },
+    })
+
+    const MS_DIA = 86_400_000
     const hoje = new Date()
 
-    const pagamentos = await prisma.pagamento.findMany({
-      where: { predioId, competencia },
-      select: {
-        id: true, unidadeId: true, valor: true, valorPago: true, status: true, vencimento: true, tipo: true
-      },
-      orderBy: [{ vencimento: 'asc' }, { unidadeId: 'asc' }]
-    }) as PgRow[]
-
-    const totalDevido = pagamentos
-      .filter((p) => p.status === 'PENDENTE' || p.status === 'ATRASADO')
-      .reduce<number>((s, p) => s + dec(p.valor), 0)
-
-    const totalRecebido = pagamentos
-      .filter((p) => p.status === 'PAGO')
-      .reduce<number>((s, p) => s + (p.valorPago != null ? dec(p.valorPago) : dec(p.valor)), 0)
-
-    const qtd = pagamentos.length
-    const atrasadosCalc = pagamentos.filter(
-      (p) => (p.status === 'PENDENTE' && p.vencimento < hoje) || p.status === 'ATRASADO'
-    )
-    const inadimplentes = new Set(atrasadosCalc.map((p) => p.unidadeId)).size
-    const inadimplenciaPct = qtd ? Number(((atrasadosCalc.length / qtd) * 100).toFixed(1)) : 0
-
-    const pendencias = pagamentos
-      .filter((p) => p.status !== 'PAGO')
-      .map((p) => ({
+    // Deriva status de exibição e dias de atraso
+    const linhas = pagamentos.map((p) => {
+      const venc = new Date(p.vencimento)
+      const vencido = p.status !== 'PAGO' && venc < hoje
+      const statusUI = p.status === 'PAGO' ? 'PAGO' : vencido ? 'ATRASADO' : 'PENDENTE'
+      const diasAtraso = vencido ? Math.max(0, Math.floor((+hoje - +venc) / MS_DIA)) : 0
+      return {
         id: p.id,
         unidadeId: p.unidadeId,
-        valor: dec(p.valor),
-        status: p.status,
-        diasAtraso: p.vencimento < hoje ? Math.floor((+hoje - +p.vencimento) / 86400000) : 0
+        valor: Number(p.valor),
+        statusUI,
+        diasAtraso,
+      }
+    })
+
+    const totalDevido = pagamentos.reduce((acc, p) => acc + Number(p.valor), 0)
+    const totalRecebido = pagamentos
+      .filter((p) => p.status === 'PAGO')
+      .reduce((acc, p) => acc + Number(p.valor), 0)
+
+    // Inadimplente = tem algum lançamento vencido e não pago na competência
+    const todasUnidades = new Set(pagamentos.map((p) => p.unidadeId))
+    const inadimplentes = new Set(linhas.filter((l) => l.statusUI === 'ATRASADO').map((l) => l.unidadeId))
+    const inadimplenciaPct =
+      todasUnidades.size === 0 ? 0 : (inadimplentes.size / todasUnidades.size) * 100
+
+    // Pendências (para quem usa no front)
+    const pendencias = linhas
+      .filter((l) => l.statusUI !== 'PAGO')
+      .map(({ id, unidadeId, valor, statusUI, diasAtraso }) => ({
+        id,
+        unidadeId,
+        valor,
+        status: statusUI,
+        diasAtraso,
       }))
 
-    return NextResponse.json({
-      competencia: competencia.toISOString().slice(0, 10),
+    return ok({
+      competencia: competenciaStr,
       kpis: {
-        totalDevido,
-        totalRecebido,
-        inadimplentes,
-        inadimplenciaPct
+        totalDevido: Number(totalDevido.toFixed(2)),
+        totalRecebido: Number(totalRecebido.toFixed(2)),
+        inadimplentes: inadimplentes.size,
+        inadimplenciaPct: Number(inadimplenciaPct.toFixed(2)),
       },
-      pendencias
+      pendencias,
     })
-  } catch (e: any) {
-    console.error(e)
-    return NextResponse.json({ error: e.message ?? 'Erro ao gerar resumo' }, { status: 500 })
+  } catch (err) {
+    console.error('[GET /financeiro/resumo]', err)
+    return handlePrismaError(err)
   }
 }

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import TabUnidades from "@/components/TabUnidades";
-import FinanceiroTab from "@/components/predios/FinanceiroTab";
+import FinanceiroTab from "@/components/financeiro/FinanceiroTab";
 
 type TabKey = "unidades" | "financeiro" | "comunicados" | "relatorios";
 
@@ -206,10 +206,7 @@ export default function PredioDashboardPage() {
           )}
 
           {tab === "financeiro" && (
-            <Placeholder
-              title="Financeiro"
-              subtitle="Em breve: composição mensal, cobranças, pagamentos e relatórios."
-            />
+           <FinanceiroTab predioId={params.id} />
           )}
           {tab === "comunicados" && (
             <Placeholder

@@ -29,7 +29,7 @@ function isValidId(id: string) {
  */
 export async function GET(_req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id } = params
+    const { id } = await params
 
     if (!isValidId(id)) {
       return bad('ID inválido')
@@ -81,7 +81,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
  */
 export async function PUT(req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id } = params
+    const { id } = await params
     if (!isValidId(id)) return bad('ID inválido')
 
     const exists = await prisma.predio.findUnique({
@@ -130,7 +130,7 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
  */
 export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id } = params
+    const { id } = await params
     if (!isValidId(id)) return bad('ID inválido')
 
     const predio = await prisma.predio.findUnique({

@@ -22,6 +22,9 @@ model Predio {
   comunicados        Comunicado[]
   manutencoes        Manutencao[]
   unidades           Unidade[]
+
+    // 🔽 RELAÇÃO REVERSA
+  pagamentos         Pagamento[]
 }
 
 model Unidade {
@@ -101,11 +104,27 @@ model Pagamento {
   competencia   DateTime?
   tipo          PagamentoTipo
   status        PagamentoStatus @default(PENDENTE)
+
+  // 🔽 NOVOS CAMPOS
+  predioId      String
+  predio        Predio          @relation(fields: [predioId], references: [id], onDelete: Cascade)
+
+  // (opcional) campo futuro
+  // valorPago   Decimal? @db.Decimal(14, 2)
+
   manutencao    Manutencao?     @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
   unidade       Unidade         @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
 
+  @@unique([manutencaoId, numeroParcela], map: "Pagamento_manutencao_parcela_ux")
   @@index([unidadeId, competencia])
   @@index([status, vencimento])
+  @@index([manutencaoId, numeroParcela], map: "Pagamento_manutencao_idx")
+  @@index([tipo, competencia], map: "Pagamento_tipo_comp_idx")
+  @@index([unidadeId, vencimento], map: "Pagamento_unidade_venc_idx")
+
+  // 🔽 NOVO ÍNDICE
+  @@index([predioId])
+  
   @@map("Pagamento")
 }
 

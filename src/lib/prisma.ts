@@ -4,16 +4,22 @@ import { PrismaClient } from '@prisma/client'
 // Evita múltiplas instâncias no hot-reload (Next.js)
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
-export const prisma = globalForPrisma.prisma ??
+export const prisma: PrismaClient =
+  globalForPrisma.prisma ??
   new PrismaClient({
-    // log: ['query', 'error', 'warn'], // opcional
+    // log: process.env.NODE_ENV === 'development' ? ['query', 'warn', 'error'] : ['error'],
   })
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma
+}
+
+// ✅ Export default para compatibilizar com imports existentes
+export default prisma
 
 /**
  * Testa a conexão sem interferir no cliente compartilhado
- * (usa um cliente efêmero)
+ * (usa um cliente efêmero — use com moderação)
  */
 export async function testConnection(): Promise<boolean> {
   const tmp = new PrismaClient()
@@ -28,7 +34,7 @@ export async function testConnection(): Promise<boolean> {
     console.error('❌ Erro ao conectar com o banco:', error)
     return false
   } finally {
-    await tmp.$disconnect() // fecha só o cliente efêmero
+    await tmp.$disconnect()
   }
 }
 
@@ -39,7 +45,7 @@ export async function getDatabaseStats() {
   try {
     const [predios, unidades, responsaveis] = await Promise.all([
       prisma.predio.count(),
-      prisma.unidade.count({ where: { ativo: true } }),
+      prisma.unidade.count(),                    // 🔧 removido where { ativo: true } (campo não existe em Unidade)
       prisma.responsavel.count({ where: { ativo: true } }),
     ])
 

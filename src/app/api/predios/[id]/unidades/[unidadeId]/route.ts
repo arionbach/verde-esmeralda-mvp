@@ -45,7 +45,7 @@ function normalizeStatus(status: string | undefined): UnidadeStatus | undefined 
 /** GET /api/predios/[id]/unidades/[unidadeId] */
 export async function GET(req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id: predioId, unidadeId } = params
+    const { id: predioId, unidadeId } = await params
     const incluirInativos = req.nextUrl.searchParams.get('inativos') === '1'
 
     const unidade = await prisma.unidade.findFirst({
@@ -107,7 +107,7 @@ export async function GET(req: NextRequest, { params }: RouteCtx) {
 /** PUT /api/predios/[id]/unidades/[unidadeId] */
 export async function PUT(req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id: predioId, unidadeId } = params
+    const { id: predioId, unidadeId } = await params
     if (!isValidId(predioId) || !isValidId(unidadeId)) return bad('ID inválido')
 
     const unidadeAtual = await prisma.unidade.findFirst({
@@ -168,7 +168,7 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
 /** DELETE /api/predios/[id]/unidades/[unidadeId] */
 export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id: predioId, unidadeId } = params
+    const { id: predioId, unidadeId } = await params
     if (!isValidId(predioId) || !isValidId(unidadeId)) return bad('ID inválido')
 
     const unidade = await prisma.unidade.findFirst({

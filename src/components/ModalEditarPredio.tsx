@@ -73,7 +73,6 @@ export default function ModalEditarPredio({ predio, onClose, onUpdate }: ModalEd
           defaultValues={defaults}
           onSubmit={onSubmit}
           submitLabel={saving ? 'Salvando...' : 'Salvar'}
-          disabled={saving}
         />
 
         <div className="mt-4">

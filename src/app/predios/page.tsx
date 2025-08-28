@@ -190,33 +190,33 @@ function FormularioPredio({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setLoading(true)
+  setError(null)
 
-    try {
-      const response = await fetch('/api/predios', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
+  try {
+    const response = await fetch('/api/predios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData) // 👈 aqui
+    })
 
-      if (response.ok) {
-        onSuccess()
-      } else {
-        const errorData = await response.json().catch(() => ({}))
-        setError(errorData.error || 'Erro ao cadastrar prédio')
-      }
-    } catch (error) {
-      console.error('Erro:', error)
-      setError('Erro ao cadastrar prédio')
-    } finally {
-      setLoading(false)
+    if (response.ok) {
+      onSuccess()
+    } else {
+      const errorData = await response.json().catch(() => ({}))
+      setError(errorData.error || 'Erro ao cadastrar prédio')
     }
+  } catch (error) {
+    console.error('Erro:', error)
+    setError('Erro ao cadastrar prédio')
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

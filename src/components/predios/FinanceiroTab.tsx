@@ -1,3 +1,4 @@
+// src\components\predios\FinanceiroTab.tsx
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
