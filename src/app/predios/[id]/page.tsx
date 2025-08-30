@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { getUnidadeTipoLabel, getResponsavelTipoLabel } from "@/domain/unidades";
 import { useParams, useSearchParams } from "next/navigation";
 import TabUnidades from "@/components/TabUnidades";
 import FinanceiroTab from "@/components/financeiro/FinanceiroTab";
@@ -318,7 +319,7 @@ function getTipoLabel(tipo: string): string {
     loja: "Loja",
     garagem: "Garagem",
   };
-  return tipos[tipo] || tipo;
+  return getUnidadeTipoLabel(tipo);
 }
 
 function getTipoResponsavel(tipo: string): string {
@@ -326,7 +327,7 @@ function getTipoResponsavel(tipo: string): string {
     proprietario: "Proprietário",
     inquilino: "Inquilino",
   };
-  return tipos[tipo] || tipo;
+  return getResponsavelTipoLabel(tipo);
 }
 
 // considera ocupada se status = ocupado ou se há responsável ativo

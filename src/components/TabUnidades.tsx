@@ -2,6 +2,12 @@
 "use client";
 
 import Link from "next/link";
+import {
+  normalizeUnidadeTipoToUi,
+  normalizeUnidadeStatusToUi,
+  getUnidadeTipoLabel,
+  getResponsavelTipoLabel,
+} from "@/domain/unidades";
 
 // Exporta as funções helpers para uso em outros componentes
 export { normalizeTipo, normalizeStatus, getTipoLabel, getTipoResponsavel };
@@ -37,12 +43,12 @@ interface TabUnidadesProps {
 
 // Normaliza tipo para minúsculo
 function normalizeTipo(tipo: string): string {
-  return (tipo || "apartamento").toLowerCase();
+  return normalizeUnidadeTipoToUi(tipo);
 }
 
 // Normaliza status para minúsculo
 function normalizeStatus(status: string): string {
-  return (status || "vazio").toLowerCase();
+  return normalizeUnidadeStatusToUi(status);
 }
 
 // Normaliza responsável tipo
@@ -62,7 +68,7 @@ function getTipoLabel(tipo: string): string {
     LOJA: "Loja",
     GARAGEM: "Garagem",
   };
-  return tipos[tipo] || tipo;
+  return getUnidadeTipoLabel(tipo);
 }
 
 // Label amigável para tipo de responsável
@@ -73,7 +79,7 @@ function getTipoResponsavel(tipo: string): string {
     PROPRIETARIO: "Proprietário",
     INQUILINO: "Inquilino",
   };
-  return tipos[tipo] || tipo;
+  return getResponsavelTipoLabel(tipo);
 }
 
 // Normaliza uma unidade completa
