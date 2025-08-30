@@ -58,6 +58,7 @@ export default function FinanceiroTab({ predioId }: Props) {
   const [loadingDespesas, setLoadingDespesas] = useState(false)
   const [showDespesas, setShowDespesas] = useState(false)
   const [novaDespesa, setNovaDespesa] = useState<{ nome: string; valor: number; diaVencimento: number; categoria?: string }>({ nome: '', valor: 0, diaVencimento: 10 })
+  const [editing, setEditing] = useState<DespesaFixa | null>(null)
 
   // resumo (KPIs)
   async function loadResumo() {
@@ -325,28 +326,90 @@ export default function FinanceiroTab({ predioId }: Props) {
                   <tbody>
                     {despesas.map((d) => (
                       <tr key={d.id} className="border-t">
-                        <td className="px-3 py-2">{d.nome}</td>
-                        <td className="px-3 py-2">{fmtBRL(d.valor)}</td>
-                        <td className="px-3 py-2">dia {d.diaVencimento}</td>
-                        <td className="px-3 py-2">{d.categoria || '-'}</td>
-                        <td className="px-3 py-2">
-                          <button
-                            className="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-200"
-                            onClick={async () => {
-                              if (!confirm('Excluir esta despesa?')) return
-                              try {
-                                const r = await fetch(`/api/predios/${predioId}/financeiro/despesas-fixas/${d.id}`, { method: 'DELETE' })
-                                if (!r.ok) throw new Error('Falha ao excluir')
-                                await Promise.all([loadDespesasFixas(), loadResumo()])
-                              } catch (e) {
-                                const msg = e instanceof Error ? e.message : 'Erro ao excluir'
-                                alert(msg)
-                              }
-                            }}
-                          >
-                            Excluir
-                          </button>
-                        </td>
+                        {editing?.id === d.id ? (
+                          <>
+                            <td className="px-3 py-2">
+                              <input className="border rounded-lg px-2 py-1 w-full" value={editing.nome}
+                                     onChange={(e)=> setEditing({ ...editing!, nome: e.target.value })} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input className="border rounded-lg px-2 py-1 w-32" type="number" min={0} step="0.01" value={editing.valor}
+                                     onChange={(e)=> setEditing({ ...editing!, valor: Number(e.target.value||0) })} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input className="border rounded-lg px-2 py-1 w-24" type="number" min={1} max={28} value={editing.diaVencimento}
+                                     onChange={(e)=> setEditing({ ...editing!, diaVencimento: Number(e.target.value||1) })} />
+                            </td>
+                            <td className="px-3 py-2">
+                              <input className="border rounded-lg px-2 py-1 w-full" value={editing.categoria || ''}
+                                     onChange={(e)=> setEditing({ ...editing!, categoria: e.target.value })} />
+                            </td>
+                            <td className="px-3 py-2 space-x-2">
+                              <button
+                                className="px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+                                onClick={async ()=>{
+                                  try {
+                                    const body = {
+                                      nome: editing!.nome,
+                                      valor: editing!.valor,
+                                      diaVencimento: editing!.diaVencimento,
+                                      categoria: editing!.categoria ?? null,
+                                    }
+                                    const r = await fetch(`/api/predios/${predioId}/financeiro/despesas-fixas/${d.id}`, {
+                                      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                                    })
+                                    const j = await r.json().catch(()=> ({}))
+                                    if (!r.ok) throw new Error(j?.error || 'Falha ao salvar')
+                                    setEditing(null)
+                                    await Promise.all([loadDespesasFixas(), loadResumo()])
+                                  } catch (e) {
+                                    const msg = e instanceof Error ? e.message : 'Erro ao salvar'
+                                    alert(msg)
+                                  }
+                                }}
+                              >
+                                Salvar
+                              </button>
+                              <button
+                                className="px-3 py-1.5 rounded-lg border hover:bg-gray-50"
+                                onClick={()=> setEditing(null)}
+                              >
+                                Cancelar
+                              </button>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td className="px-3 py-2">{d.nome}</td>
+                            <td className="px-3 py-2">{fmtBRL(d.valor)}</td>
+                            <td className="px-3 py-2">dia {d.diaVencimento}</td>
+                            <td className="px-3 py-2">{d.categoria || '-'}</td>
+                            <td className="px-3 py-2 space-x-2">
+                              <button
+                                className="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100"
+                                onClick={()=> setEditing(d)}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                className="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-200"
+                                onClick={async () => {
+                                  if (!confirm('Excluir esta despesa?')) return
+                                  try {
+                                    const r = await fetch(`/api/predios/${predioId}/financeiro/despesas-fixas/${d.id}`, { method: 'DELETE' })
+                                    if (!r.ok) throw new Error('Falha ao excluir')
+                                    await Promise.all([loadDespesasFixas(), loadResumo()])
+                                  } catch (e) {
+                                    const msg = e instanceof Error ? e.message : 'Erro ao excluir'
+                                    alert(msg)
+                                  }
+                                }}
+                              >
+                                Excluir
+                              </button>
+                            </td>
+                          </>
+                        )}
                       </tr>
                     ))}
                   </tbody>
