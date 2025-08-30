@@ -51,10 +51,7 @@ function normalizeStatus(status: string): string {
   return normalizeUnidadeStatusToUi(status);
 }
 
-// Normaliza responsável tipo
-function normalizeResponsavelTipo(tipo: string): string {
-  return (tipo || "proprietario").toLowerCase();
-}
+// Normalização de responsável centralizada em domain (getResponsavelTipoLabel)
 
 // Label amigável para tipo
 function getTipoLabel(tipo: string): string {

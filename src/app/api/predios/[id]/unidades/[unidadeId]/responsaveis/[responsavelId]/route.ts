@@ -5,6 +5,7 @@ import { ok, bad, notFound, conflict, noContent, handlePrismaError } from 'src/a
 import { z } from 'zod'
 import { ResponsavelUpdateSchema } from 'src/app/api/_schemas'
 import { ResponsavelTipo } from '@prisma/client'
+import { toResponsavelTipoEnum } from '@/domain/unidades'
 
 type RouteCtx = { params: { id: string; unidadeId: string; responsavelId: string } }
 
@@ -17,13 +18,7 @@ function isValidId(id: string) {
 
 function normalizeTipo(v?: string): ResponsavelTipo | undefined {
   if (!v) return undefined
-  const map: Record<string, ResponsavelTipo> = {
-    proprietario: 'PROPRIETARIO',
-    PROPRIETARIO: 'PROPRIETARIO',
-    inquilino: 'INQUILINO',
-    INQUILINO: 'INQUILINO',
-  }
-  return map[v]
+  return toResponsavelTipoEnum(v)
 }
 
 /** GET opcional: caso você queira buscar 1 responsável isolado */
