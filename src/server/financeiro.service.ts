@@ -1,5 +1,5 @@
 // src/server/financeiro.service.ts
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { PagamentoStatus, PagamentoTipo, Prisma } from '@prisma/client'
 import { startOfMonth, endOfMonth, parse } from 'date-fns'
 
@@ -209,4 +209,5 @@ export async function listPagamentos(
 
   return { itens }
 }
+
 
