@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { prisma } from "@/lib/prisma"
 import { UnidadeStatus, UnidadeTipo } from "@prisma/client"
 import { toUnidadeStatusEnum, toUnidadeTipoEnum } from "@/domain/unidades"
 

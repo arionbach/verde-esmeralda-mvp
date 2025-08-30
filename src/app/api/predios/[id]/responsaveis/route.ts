@@ -1,6 +1,6 @@
 // src/app/api/unidades/[id]/responsaveis/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
 // Schema de validação

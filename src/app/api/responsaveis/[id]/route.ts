@@ -1,6 +1,6 @@
 // src/app/api/responsaveis/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 
 // PUT - Atualizar responsável
 export async function PUT(

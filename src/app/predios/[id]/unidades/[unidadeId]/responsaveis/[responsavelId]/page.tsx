@@ -1,7 +1,7 @@
 // src/app/api/predios/[id]/unidades/[unidadeId]/responsaveis/[responsavelId]/route.ts
 
 import { NextRequest } from 'next/server'
-import prisma from '@/lib/prisma'
+import { prisma } from '@/lib/prisma'
 import {
   noContent, bad, notFound, handlePrismaError, isValidUUID
 } from '@/app/api/_utils'

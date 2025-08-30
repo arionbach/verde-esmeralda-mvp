@@ -7,7 +7,7 @@ import { ResponsavelUpdateSchema } from 'src/app/api/_schemas'
 import { ResponsavelTipo } from '@prisma/client'
 import { toResponsavelTipoEnum } from '@/domain/unidades'
 
-type RouteCtx = { params: { id: string; unidadeId: string; responsavelId: string } }
+type RouteCtx = { params: Promise<{ id: string; unidadeId: string; responsavelId: string }> }
 
 function isValidId(id: string) {
   if (!id) return false
@@ -24,7 +24,7 @@ function normalizeTipo(v?: string): ResponsavelTipo | undefined {
 /** GET opcional: caso você queira buscar 1 responsável isolado */
 export async function GET(_req: NextRequest, { params }: RouteCtx) {
   try {
-    const { unidadeId, responsavelId } = params
+    const { unidadeId, responsavelId } = await params
     if (![unidadeId, responsavelId].every(isValidId)) return bad('ID inválido')
 
     const resp = await prisma.responsavel.findFirst({
@@ -42,7 +42,7 @@ export async function GET(_req: NextRequest, { params }: RouteCtx) {
 /** PUT /api/predios/[id]/unidades/[unidadeId]/responsaveis/[responsavelId] */
 export async function PUT(req: NextRequest, { params }: RouteCtx) {
   try {
-    const { id: predioId, unidadeId, responsavelId } = params
+    const { id: predioId, unidadeId, responsavelId } = await params
     if (![predioId, unidadeId, responsavelId].every(isValidId)) return bad('ID inválido')
 
     // Garante que o responsável pertence à unidade (e está ativo)
@@ -94,7 +94,7 @@ export async function PUT(req: NextRequest, { params }: RouteCtx) {
 /** DELETE (soft delete) caso precise aqui também */
 export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
   try {
-    const { unidadeId, responsavelId } = params
+    const { unidadeId, responsavelId } = await params
     if (![unidadeId, responsavelId].every(isValidId)) return bad('ID inválido')
 
     const exists = await prisma.responsavel.findFirst({
@@ -117,7 +117,7 @@ export async function DELETE(_req: NextRequest, { params }: RouteCtx) {
 
 export async function PATCH(req: NextRequest, { params }: RouteCtx) {
   try {
-    const { unidadeId, responsavelId } = params
+    const { unidadeId, responsavelId } = await params
 
     const body = await req.json().catch(() => ({}))
     const tornarTitular = body?.tornarTitular === true  // opcional
