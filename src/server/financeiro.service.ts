@@ -150,6 +150,20 @@ export async function getResumo(predioId: string, competencia: string) {
     .filter((l) => l.statusUI !== 'PAGO')
     .map(({ id, unidadeId, valor, statusUI, diasAtraso }) => ({ id, unidadeId, valor, status: statusUI, diasAtraso }))
 
+  // Despesas fixas ativas na competência
+  const despesasFixas = await prisma.despesaFixa.findMany({
+    where: {
+      predioId,
+      ativo: true,
+      AND: [
+        { OR: [{ dataInicio: null }, { dataInicio: { lte: fim } }] },
+        { OR: [{ dataFim: null }, { dataFim: { gte: inicio } }] },
+      ],
+    },
+    select: { valor: true },
+  })
+  const despesasFixasMes = despesasFixas.reduce((acc, d) => acc + Number(d.valor), 0)
+
   return {
     competencia: competenciaStr,
     kpis: {
@@ -157,6 +171,8 @@ export async function getResumo(predioId: string, competencia: string) {
       totalRecebido: Number(totalRecebido.toFixed(2)),
       inadimplentes: inadimplentes.size,
       inadimplenciaPct: Number(inadimplenciaPct.toFixed(2)),
+      despesasFixasMes: Number(despesasFixasMes.toFixed(2)),
+      saldoPrevisto: Number((totalRecebido - despesasFixasMes).toFixed(2)),
     },
     pendencias,
   }
@@ -208,6 +224,98 @@ export async function listPagamentos(
   })()
 
   return { itens }
+}
+
+// CRUD de Despesa Fixa
+export interface DespesaFixaDTO {
+  id: string
+  predioId: string
+  nome: string
+  valor: number
+  diaVencimento: number
+  categoria?: string | null
+  dataInicio?: Date | null
+  dataFim?: Date | null
+  ativo: boolean
+}
+
+export async function listDespesasFixas(predioId: string): Promise<DespesaFixaDTO[]> {
+  const rows = await prisma.despesaFixa.findMany({ where: { predioId }, orderBy: { createdAt: 'desc' } })
+  return rows.map((r) => ({
+    id: r.id,
+    predioId: r.predioId,
+    nome: r.nome,
+    valor: Number(r.valor),
+    diaVencimento: r.diaVencimento,
+    categoria: r.categoria ?? null,
+    dataInicio: r.dataInicio ?? null,
+    dataFim: r.dataFim ?? null,
+    ativo: r.ativo,
+  }))
+}
+
+export async function createDespesaFixa(predioId: string, data: {
+  nome: string
+  valor: number
+  diaVencimento: number
+  categoria?: string | null
+  dataInicio?: Date | null
+  dataFim?: Date | null
+  ativo?: boolean
+}): Promise<DespesaFixaDTO> {
+  const row = await prisma.despesaFixa.create({
+    data: {
+      predioId,
+      nome: data.nome,
+      valor: data.valor,
+      diaVencimento: data.diaVencimento,
+      categoria: data.categoria ?? null,
+      dataInicio: data.dataInicio ?? null,
+      dataFim: data.dataFim ?? null,
+      ativo: data.ativo ?? true,
+    },
+  })
+  return {
+    id: row.id,
+    predioId: row.predioId,
+    nome: row.nome,
+    valor: Number(row.valor),
+    diaVencimento: row.diaVencimento,
+    categoria: row.categoria ?? null,
+    dataInicio: row.dataInicio ?? null,
+    dataFim: row.dataFim ?? null,
+    ativo: row.ativo,
+  }
+}
+
+export async function updateDespesaFixa(despesaId: string, data: Partial<Omit<DespesaFixaDTO, 'id' | 'predioId'>>): Promise<DespesaFixaDTO> {
+  const row = await prisma.despesaFixa.update({
+    where: { id: despesaId },
+    data: {
+      ...(data.nome !== undefined && { nome: data.nome }),
+      ...(data.valor !== undefined && { valor: data.valor }),
+      ...(data.diaVencimento !== undefined && { diaVencimento: data.diaVencimento }),
+      ...(data.categoria !== undefined && { categoria: data.categoria }),
+      ...(data.dataInicio !== undefined && { dataInicio: data.dataInicio }),
+      ...(data.dataFim !== undefined && { dataFim: data.dataFim }),
+      ...(data.ativo !== undefined && { ativo: data.ativo }),
+    },
+  })
+  return {
+    id: row.id,
+    predioId: row.predioId,
+    nome: row.nome,
+    valor: Number(row.valor),
+    diaVencimento: row.diaVencimento,
+    categoria: row.categoria ?? null,
+    dataInicio: row.dataInicio ?? null,
+    dataFim: row.dataFim ?? null,
+    ativo: row.ativo,
+  }
+}
+
+export async function deleteDespesaFixa(despesaId: string): Promise<void> {
+  await prisma.despesaFixa.delete({ where: { id: despesaId } })
 }
 
 

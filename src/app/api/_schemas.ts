@@ -172,6 +172,20 @@ export const ComunicadoCreateSchema = z.object({
 
 export const ComunicadoUpdateSchema = ComunicadoCreateSchema.partial()
 
+// ============= DESPESA FIXA =============
+
+export const DespesaFixaCreateSchema = z.object({
+  nome: z.string().min(1, 'Nome é obrigatório').max(100),
+  valor: toNumber.pipe(z.number().positive('Valor deve ser maior que zero')),
+  diaVencimento: z.coerce.number().int().min(1).max(28),
+  categoria: z.string().max(50).optional().nullable(),
+  dataInicio: toDate.optional(),
+  dataFim: toDateNullable,
+  ativo: z.boolean().default(true),
+})
+
+export const DespesaFixaUpdateSchema = DespesaFixaCreateSchema.partial()
+
 // ============= FILTROS E QUERIES =============
 
 export const PaginationSchema = z.object({
@@ -205,6 +219,8 @@ export type ComunicadoCreateInput = z.infer<typeof ComunicadoCreateSchema>
 export type ComunicadoUpdateInput = z.infer<typeof ComunicadoUpdateSchema>
 export type PaginationInput = z.infer<typeof PaginationSchema>
 export type DateRangeInput = z.infer<typeof DateRangeSchema>
+export type DespesaFixaCreateInput = z.infer<typeof DespesaFixaCreateSchema>
+export type DespesaFixaUpdateInput = z.infer<typeof DespesaFixaUpdateSchema>
 
 // ============= VALIDADORES ÚTEIS =============
 

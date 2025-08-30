@@ -21,6 +21,7 @@ model Predio {
   updatedAt          DateTime     @updatedAt
   comunicados        Comunicado[]
   manutencoes        Manutencao[]
+  despesasFixas      DespesaFixa[]
   unidades           Unidade[]
 
     // 🔽 RELAÇÃO REVERSA
@@ -168,6 +169,7 @@ enum ManutencaoStatus {
 enum PagamentoTipo {
   TAXA_MENSAL
   MANUTENCAO
+  DESPESA_FIXA
 }
 
 enum PagamentoStatus {
@@ -175,4 +177,23 @@ enum PagamentoStatus {
   PAGO
   ATRASADO
   CANCELADO
+}
+
+// Despesas fixas do condomínio (água, luz, zeladoria, etc.)
+model DespesaFixa {
+  id             String   @id @default(cuid())
+  predioId       String
+  nome           String
+  valor          Decimal  @db.Decimal(14, 2)
+  diaVencimento  Int      // 1..28
+  categoria      String?
+  dataInicio     DateTime? // se definido, só conta a partir desta competência
+  dataFim        DateTime? // se definido, deixa de contar após esta competência
+  ativo          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  predio         Predio   @relation(fields: [predioId], references: [id], onDelete: Cascade)
+
+  @@index([predioId, ativo])
 }
