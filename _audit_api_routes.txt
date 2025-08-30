@@ -1,0 +1,7 @@
+Get-ChildItem : Não é possível localizar um parâmetro posicional que aceite o argumento '^'.
+No linha:1 caractere:1
++ Get-ChildItem -Path .\src\app\api -Recurse -Filter route.ts ^| Select ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Get-ChildItem], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.GetChildItemCommand
+ 

@@ -1,0 +1,122 @@
+\teste.ts:15 - GET
+\.next\types\routes.d.ts:50 - ParamsOf
+\.next\types\routes.d.ts:57 - PageRoutes (used in module)
+\.next\types\routes.d.ts:57 - RedirectRoutes (used in module)
+\.next\types\routes.d.ts:57 - RewriteRoutes (used in module)
+\src\components\ModalNovoResponsavel.tsx:16 - default
+\src\components\ResponsavelForm.tsx:14 - default
+\src\components\TabUnidades.tsx:7 - normalizeTipo (used in module)
+\src\components\TabUnidades.tsx:7 - normalizeStatus (used in module)
+\src\components\TabUnidades.tsx:7 - getTipoLabel (used in module)
+\src\components\TabUnidades.tsx:7 - getTipoResponsavel (used in module)
+\src\lib\prisma.ts:24 - testConnection
+\src\lib\prisma.ts:44 - getDatabaseStats
+\src\types\unidade.ts:1 - UnidadeTipo (used in module)
+\src\types\unidade.ts:2 - UnidadeStatus (used in module)
+\src\types\unidade.ts:19 - UnidadeCreateInput (used in module)
+\.next\types\app\layout.ts:54 - PageProps
+\.next\types\app\layout.ts:58 - LayoutProps (used in module)
+\.next\types\app\page.ts:54 - PageProps (used in module)
+\.next\types\app\page.ts:58 - LayoutProps
+\src\app\api\_schemas.ts:214 - isValidCPF
+\src\app\api\_schemas.ts:225 - isValidCNPJ
+\src\app\api\_schemas.ts:236 - currencyToDecimal
+\src\app\api\_schemas.ts:86 - PredioCreateSchema (used in module)
+\src\app\api\_schemas.ts:131 - ManutencaoCreateSchema (used in module)
+\src\app\api\_schemas.ts:141 - ManutencaoUpdateSchema (used in module)
+\src\app\api\_schemas.ts:145 - PagamentoCreateSchema (used in module)
+\src\app\api\_schemas.ts:158 - PagamentoUpdateSchema (used in module)
+\src\app\api\_schemas.ts:166 - ComunicadoCreateSchema (used in module)
+\src\app\api\_schemas.ts:173 - ComunicadoUpdateSchema (used in module)
+\src\app\api\_schemas.ts:177 - PaginationSchema (used in module)
+\src\app\api\_schemas.ts:184 - DateRangeSchema (used in module)
+\src\app\api\_schemas.ts:194 - PredioCreateInput
+\src\app\api\_schemas.ts:195 - PredioUpdateInput
+\src\app\api\_schemas.ts:196 - UnidadeCreateInput
+\src\app\api\_schemas.ts:197 - UnidadeUpdateInput
+\src\app\api\_schemas.ts:200 - ManutencaoCreateInput
+\src\app\api\_schemas.ts:201 - ManutencaoUpdateInput
+\src\app\api\_schemas.ts:202 - PagamentoCreateInput
+\src\app\api\_schemas.ts:203 - PagamentoUpdateInput
+\src\app\api\_schemas.ts:204 - ComunicadoCreateInput
+\src\app\api\_schemas.ts:205 - ComunicadoUpdateInput
+\src\app\api\_schemas.ts:206 - PaginationInput
+\src\app\api\_schemas.ts:207 - DateRangeInput
+\src\app\api\_utils.ts:50 - unauthorized
+\src\app\api\_utils.ts:60 - forbidden
+\src\app\api\_utils.ts:90 - unprocessable
+\src\app\api\_utils.ts:116 - unavailable
+\src\app\api\_utils.ts:173 - getPaginationParams
+\src\app\api\_utils.ts:196 - paginated
+\src\app\api\_utils.ts:221 - cleanObject
+\src\app\api\_utils.ts:233 - toNumberSafe
+\src\app\api\_utils.ts:167 - PaginationParams (used in module)
+\src\app\api\_utils.ts:184 - PaginatedResponse (used in module)
+\src\components\predios\FinanceiroTab.tsx:24 - default
+\src\components\unidades\FinanceiroTab.tsx:10 - default
+\.next\types\app\predios\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\page.ts:58 - LayoutProps
+\src\app\unidades\[id]\FinanceiroTab.tsx:13 - default
+\.next\types\app\api\predios\route.ts:313 - PageProps
+\.next\types\app\api\predios\route.ts:317 - LayoutProps
+\.next\types\app\predios\[id]\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\page.ts:58 - LayoutProps
+\src\app\predios\[id]\unidades\page.tsx:57 - default
+\.next\types\app\api\predios\[id]\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\route.ts:317 - LayoutProps
+\.next\types\app\api\responsaveis\[id]\route.ts:313 - PageProps
+\.next\types\app\api\responsaveis\[id]\route.ts:317 - LayoutProps
+\.next\types\app\api\unidades\[id]\route.ts:313 - PageProps
+\.next\types\app\api\unidades\[id]\route.ts:317 - LayoutProps
+\.next\types\app\predios\[id]\unidades\route.ts:313 - PageProps
+\.next\types\app\predios\[id]\unidades\route.ts:317 - LayoutProps
+\.next\types\app\api\pagamentos\[id]\estornar\route.ts:313 - PageProps
+\.next\types\app\api\pagamentos\[id]\estornar\route.ts:317 - LayoutProps
+\.next\types\app\api\pagamentos\[id]\pagar\route.ts:313 - PageProps
+\.next\types\app\api\pagamentos\[id]\pagar\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\dashboard\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\dashboard\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\responsaveis\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\responsaveis\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\unidades\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\unidades\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\unidades\[id]\route.ts:313 - PageProps
+\.next\types\app\api\predios\unidades\[id]\route.ts:317 - LayoutProps
+\.next\types\app\api\unidades\[id]\responsaveis\route.ts:313 - PageProps
+\.next\types\app\api\unidades\[id]\responsaveis\route.ts:317 - LayoutProps
+\.next\types\app\predios\[id]\unidades\[unidadeId]\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\[unidadeId]\page.ts:58 - LayoutProps
+\.next\types\app\predios\[id]\unidades\nova\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\nova\page.ts:58 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\gerar-mensal\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\gerar-mensal\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\gerar-taxas\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\gerar-taxas\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\mensalidades\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\mensalidades\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\pagamentos\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\pagamentos\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\recalcular\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\recalcular\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\recalcular-status\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\recalcular-status\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\financeiro\resumo\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\financeiro\resumo\route.ts:317 - LayoutProps
+\.next\types\app\api\predios\[id]\unidades\[unidadeId]\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\unidades\[unidadeId]\route.ts:317 - LayoutProps
+\.next\types\app\api\unidades\[id]\financeiro\resumo\route.ts:313 - PageProps
+\.next\types\app\api\unidades\[id]\financeiro\resumo\route.ts:317 - LayoutProps
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\page.ts:58 - LayoutProps
+\.next\types\app\api\predios\[id]\unidades\[unidadeId]\responsaveis\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\unidades\[unidadeId]\responsaveis\route.ts:317 - LayoutProps
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\page.ts:58 - LayoutProps
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\novo\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\novo\page.ts:58 - LayoutProps
+\.next\types\app\api\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\route.ts:313 - PageProps
+\.next\types\app\api\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\route.ts:317 - LayoutProps
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\editar\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\editar\page.ts:58 - LayoutProps
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\excluir\page.ts:54 - PageProps (used in module)
+\.next\types\app\predios\[id]\unidades\[unidadeId]\responsaveis\[responsavelId]\excluir\page.ts:58 - LayoutProps

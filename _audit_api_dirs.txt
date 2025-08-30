@@ -1,0 +1,7 @@
+Where-Object : Não é possível localizar um parâmetro posicional que aceite o argumento '^'.
+No linha:1 caractere:54
++ ... -Recurse ^| Where-Object { $_.FullName -like "*\app\api*" } ^| Select ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Where-Object], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.WhereObjectCommand
+ 
