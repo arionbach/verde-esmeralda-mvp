@@ -5,6 +5,7 @@ import { UnidadeUpdateSchema } from '../../../../_schemas'
 import { ok, notFound, bad, conflict, noContent, handlePrismaError } from '../../../../_utils'
 import { z } from 'zod'
 import { UnidadeTipo, UnidadeStatus } from '@prisma/client'
+import { toUnidadeTipoEnum, toUnidadeStatusEnum } from '@/domain/unidades'
 
 type RouteCtx = { params: { id: string; unidadeId: string } }
 
@@ -18,28 +19,12 @@ function isValidId(id: string) {
 
 function normalizeTipo(tipo: string | undefined): UnidadeTipo | undefined {
   if (!tipo) return undefined
-  const map: Record<string, UnidadeTipo> = {
-    apartamento: UnidadeTipo.APARTAMENTO,
-    cobertura: UnidadeTipo.COBERTURA,
-    loja: UnidadeTipo.LOJA,
-    garagem: UnidadeTipo.GARAGEM,
-    APARTAMENTO: UnidadeTipo.APARTAMENTO,
-    COBERTURA: UnidadeTipo.COBERTURA,
-    LOJA: UnidadeTipo.LOJA,
-    GARAGEM: UnidadeTipo.GARAGEM,
-  }
-  return map[tipo]
+  return toUnidadeTipoEnum(tipo)
 }
 
 function normalizeStatus(status: string | undefined): UnidadeStatus | undefined {
   if (!status) return undefined
-  const map: Record<string, UnidadeStatus> = {
-    ocupado: UnidadeStatus.OCUPADO,
-    vazio: UnidadeStatus.VAZIO,
-    OCUPADO: UnidadeStatus.OCUPADO,
-    VAZIO: UnidadeStatus.VAZIO,
-  }
-  return map[status]
+  return toUnidadeStatusEnum(status)
 }
 
 /** GET /api/predios/[id]/unidades/[unidadeId] */

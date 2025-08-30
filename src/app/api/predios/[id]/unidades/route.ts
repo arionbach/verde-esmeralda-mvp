@@ -13,6 +13,7 @@ import {
 } from '../../../_utils'
 import { z } from 'zod'
 import { UnidadeTipo, UnidadeStatus } from '@prisma/client'
+import { toUnidadeStatusEnum, toUnidadeTipoEnum } from '@/domain/unidades'
 
 /**
  * Tipo dos parâmetros da rota (Next.js 15)
@@ -25,36 +26,14 @@ type RouteParams = {
  * Normaliza tipo de unidade do frontend (minúsculo) para Prisma (maiúsculo)
  */
 function normalizeTipo(tipo: string | undefined): UnidadeTipo {
-  if (!tipo) return UnidadeTipo.APARTAMENTO
-  
-  const map: Record<string, UnidadeTipo> = {
-    'apartamento': UnidadeTipo.APARTAMENTO,
-    'cobertura': UnidadeTipo.COBERTURA,
-    'loja': UnidadeTipo.LOJA,
-    'garagem': UnidadeTipo.GARAGEM,
-    'APARTAMENTO': UnidadeTipo.APARTAMENTO,
-    'COBERTURA': UnidadeTipo.COBERTURA,
-    'LOJA': UnidadeTipo.LOJA,
-    'GARAGEM': UnidadeTipo.GARAGEM,
-  }
-  
-  return map[tipo] || UnidadeTipo.APARTAMENTO
+  return toUnidadeTipoEnum(tipo)
 }
 
 /**
  * Normaliza status da unidade
  */
 function normalizeStatus(status: string | undefined): UnidadeStatus {
-  if (!status) return UnidadeStatus.VAZIO
-  
-  const map: Record<string, UnidadeStatus> = {
-    'ocupado': UnidadeStatus.OCUPADO,
-    'vazio': UnidadeStatus.VAZIO,
-    'OCUPADO': UnidadeStatus.OCUPADO,
-    'VAZIO': UnidadeStatus.VAZIO,
-  }
-  
-  return map[status] || UnidadeStatus.VAZIO
+  return toUnidadeStatusEnum(status)
 }
 
 /**
