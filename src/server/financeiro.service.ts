@@ -202,7 +202,7 @@ export async function listPagamentos(
     return {
       id: r.id,
       unidadeId: r.unidadeId,
-      unidadeNome: r.unidade?.numero ? `Unidade ${r.unidade.numero}` : undefined,
+      unidadeNome: r.unidade?.numero ? `Unidade ${r.unidade.numero}` : 'Condomínio',
       valor: Number(r.valor),
       status: statusUI,
       diasAtraso: vencido ? Math.max(0, Math.floor((+hoje - +r.vencimento) / 86_400_000)) : 0,
@@ -224,6 +224,62 @@ export async function listPagamentos(
   })()
 
   return { itens }
+}
+
+export async function gerarLancamentosDespesasFixas(
+  predioId: string,
+  competencia: string,
+  opts?: { sobrescrever?: boolean }
+) {
+  const { inicio } = parseCompetencia(competencia)
+  // despesas ativas na competência
+  const despesas = await prisma.despesaFixa.findMany({
+    where: {
+      predioId,
+      ativo: true,
+      AND: [
+        { OR: [{ dataInicio: null }, { dataInicio: { lte: inicio } }] },
+        { OR: [{ dataFim: null }, { dataFim: { gte: inicio } }] },
+      ],
+    },
+    select: { id: true, valor: true, diaVencimento: true },
+  })
+
+  let created = 0
+  let updated = 0
+  let skipped = 0
+
+  for (const d of despesas) {
+    const venc = new Date(inicio.getFullYear(), inicio.getMonth(), d.diaVencimento)
+    const existing = await prisma.pagamento.findFirst({
+      where: { predioId, despesaFixaId: d.id, competencia: { gte: inicio, lte: endOfMonth(inicio) } },
+      select: { id: true },
+    })
+    if (existing) {
+      if (opts?.sobrescrever) {
+        await prisma.pagamento.update({ where: { id: existing.id }, data: {
+          valor: d.valor, vencimento: venc, status: PagamentoStatus.PENDENTE,
+        }})
+        updated++
+      } else {
+        skipped++
+      }
+    } else {
+      await prisma.pagamento.create({ data: {
+        predioId,
+        unidadeId: null,
+        despesaFixaId: d.id,
+        tipo: PagamentoTipo.DESPESA_FIXA,
+        status: PagamentoStatus.PENDENTE,
+        competencia: inicio,
+        vencimento: venc,
+        valor: d.valor,
+      }})
+      created++
+    }
+  }
+
+  return { created, updated, skipped, totalDespesas: despesas.length }
 }
 
 // CRUD de Despesa Fixa

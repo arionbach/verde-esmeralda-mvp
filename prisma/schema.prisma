@@ -100,7 +100,7 @@ model Pagamento {
   observacao    String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
-  unidadeId     String
+  unidadeId     String?
   manutencaoId  String?
   competencia   DateTime?
   tipo          PagamentoTipo
@@ -114,7 +114,9 @@ model Pagamento {
   // valorPago   Decimal? @db.Decimal(14, 2)
 
   manutencao    Manutencao?     @relation(fields: [manutencaoId], references: [id], onDelete: Cascade)
-  unidade       Unidade         @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  unidade       Unidade?        @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  despesaFixaId String?
+  despesaFixa   DespesaFixa?    @relation(fields: [despesaFixaId], references: [id], onDelete: Cascade)
 
   @@unique([manutencaoId, numeroParcela], map: "Pagamento_manutencao_parcela_ux")
   @@index([unidadeId, competencia])
@@ -122,6 +124,7 @@ model Pagamento {
   @@index([manutencaoId, numeroParcela], map: "Pagamento_manutencao_idx")
   @@index([tipo, competencia], map: "Pagamento_tipo_comp_idx")
   @@index([unidadeId, vencimento], map: "Pagamento_unidade_venc_idx")
+  @@unique([despesaFixaId, competencia], map: "Pagamento_despesa_comp_ux")
 
   // 🔽 NOVO ÍNDICE
   @@index([predioId])

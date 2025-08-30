@@ -246,6 +246,28 @@ export default function FinanceiroTab({ predioId }: Props) {
         </button>
 
         <button
+          onClick={async ()=>{
+            setWorking(true)
+            try {
+              const url = `/api/predios/${predioId}/financeiro/despesas-fixas/gerar?competencia=${competencia}`
+              const r = await fetch(url, { method: 'POST' })
+              const j = await r.json().catch(()=> ({}))
+              if (!r.ok) throw new Error(j?.error || 'Falha ao gerar despesas')
+              await Promise.all([loadResumo(), loadTabela(), loadDespesasFixas()])
+            } catch (e) {
+              const msg = e instanceof Error ? e.message : 'Erro ao gerar despesas'
+              alert(msg)
+            } finally {
+              setWorking(false)
+            }
+          }}
+          disabled={working}
+          className="bg-purple-100 text-purple-800 px-4 py-2 rounded-lg hover:bg-purple-200 disabled:opacity-50"
+        >
+          Gerar despesas fixas
+        </button>
+
+        <button
           onClick={() => { loadResumo(); loadTabela(); }}
           disabled={loadingResumo || loadingTabela}
           className="px-4 py-2 rounded-lg border hover:bg-gray-50 disabled:opacity-50"
