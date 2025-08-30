@@ -15,7 +15,26 @@ type Item = {
 
 type Resumo = {
   competencia: string
-  kpis: { totalDevido: number; totalRecebido: number; inadimplentes: number; inadimplenciaPct: number }
+  kpis: {
+    totalDevido: number
+    totalRecebido: number
+    inadimplentes: number
+    inadimplenciaPct: number
+    despesasFixasMes?: number
+    saldoPrevisto?: number
+  }
+}
+
+type DespesaFixa = {
+  id: string
+  predioId: string
+  nome: string
+  valor: number
+  diaVencimento: number
+  categoria?: string | null
+  dataInicio?: string | null
+  dataFim?: string | null
+  ativo: boolean
 }
 
 type Props = { predioId: string }
@@ -35,6 +54,10 @@ export default function FinanceiroTab({ predioId }: Props) {
   const [loadingTabela, setLoadingTabela] = useState(false)
   const [working, setWorking] = useState(false)
   const [erroTabela, setErroTabela] = useState<string | null>(null)
+  const [despesas, setDespesas] = useState<DespesaFixa[]>([])
+  const [loadingDespesas, setLoadingDespesas] = useState(false)
+  const [showDespesas, setShowDespesas] = useState(false)
+  const [novaDespesa, setNovaDespesa] = useState<{ nome: string; valor: number; diaVencimento: number; categoria?: string }>({ nome: '', valor: 0, diaVencimento: 10 })
 
   // resumo (KPIs)
   async function loadResumo() {
@@ -73,6 +96,7 @@ export default function FinanceiroTab({ predioId }: Props) {
     if (!predioId) return
     loadResumo()
     loadTabela()
+    loadDespesasFixas()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [predioId, competencia, statusFiltro])
 
@@ -91,6 +115,21 @@ export default function FinanceiroTab({ predioId }: Props) {
       alert(msg)
     } finally {
       setWorking(false)
+    }
+  }
+
+  async function loadDespesasFixas() {
+    setLoadingDespesas(true)
+    try {
+      const r = await fetch(`/api/predios/${predioId}/financeiro/despesas-fixas`, { cache: 'no-store' })
+      const j = await r.json()
+      if (!r.ok) throw new Error(j?.error || 'Falha ao carregar despesas')
+      setDespesas(j.itens || [])
+    } catch (e) {
+      console.error(e)
+      setDespesas([])
+    } finally {
+      setLoadingDespesas(false)
     }
   }
 
@@ -144,6 +183,8 @@ export default function FinanceiroTab({ predioId }: Props) {
       { label: 'Total recebido', value: fmtBRL(resumo?.kpis.totalRecebido ?? 0) },
       { label: 'Unid. inadimplentes', value: `${resumo?.kpis.inadimplentes ?? 0}` },
       { label: '% inadimplência', value: `${(resumo?.kpis.inadimplenciaPct ?? 0).toFixed(0)}%` },
+      { label: 'Despesas fixas (mês)', value: fmtBRL(resumo?.kpis.despesasFixasMes ?? 0) },
+      { label: 'Saldo previsto', value: fmtBRL(resumo?.kpis.saldoPrevisto ?? 0) },
     ],
     [resumo]
   )
@@ -213,13 +254,107 @@ export default function FinanceiroTab({ predioId }: Props) {
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
         {kpis.map((k) => (
           <div key={k.label} className="rounded-xl border bg-white p-4 shadow-sm">
             <div className="text-sm text-gray-500">{k.label}</div>
             <div className="mt-2 text-2xl font-semibold text-gray-800">{k.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* Despesas Fixas (CRUD simples) */}
+      <div className="rounded-xl border bg-white p-4">
+        <div className="flex items-center justify-between">
+          <div className="font-medium">Despesas Fixas</div>
+          <button onClick={() => setShowDespesas((v) => !v)} className="text-sm text-verde-esmeralda-700 hover:underline">
+            {showDespesas ? 'Ocultar' : 'Gerenciar'}
+          </button>
+        </div>
+        {showDespesas && (
+          <div className="mt-3 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+              <input className="border rounded-lg px-3 py-2" placeholder="Nome" value={novaDespesa.nome}
+                     onChange={(e) => setNovaDespesa({ ...novaDespesa, nome: e.target.value })} />
+              <input className="border rounded-lg px-3 py-2" placeholder="Valor" type="number" min={0} step="0.01" value={novaDespesa.valor}
+                     onChange={(e) => setNovaDespesa({ ...novaDespesa, valor: Number(e.target.value || 0) })} />
+              <input className="border rounded-lg px-3 py-2" placeholder="Dia venc." type="number" min={1} max={28} value={novaDespesa.diaVencimento}
+                     onChange={(e) => setNovaDespesa({ ...novaDespesa, diaVencimento: Number(e.target.value || 1) })} />
+              <div className="flex gap-2">
+                <input className="border rounded-lg px-3 py-2 flex-1" placeholder="Categoria (opcional)" value={novaDespesa.categoria || ''}
+                       onChange={(e) => setNovaDespesa({ ...novaDespesa, categoria: e.target.value })} />
+                <button
+                  className="bg-verde-esmeralda-600 text-white px-4 py-2 rounded-lg hover:bg-verde-esmeralda-700"
+                  onClick={async () => {
+                    try {
+                      const r = await fetch(`/api/predios/${predioId}/financeiro/despesas-fixas`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(novaDespesa),
+                      })
+                      const j = await r.json().catch(() => ({}))
+                      if (!r.ok) throw new Error(j?.error || 'Falha ao criar despesa')
+                      setNovaDespesa({ nome: '', valor: 0, diaVencimento: 10 })
+                      await Promise.all([loadDespesasFixas(), loadResumo()])
+                    } catch (e) {
+                      const msg = e instanceof Error ? e.message : 'Erro ao criar despesa'
+                      alert(msg)
+                    }
+                  }}
+                >
+                  Adicionar
+                </button>
+              </div>
+            </div>
+
+            {loadingDespesas ? (
+              <div className="text-gray-500">Carregando despesas.</div>
+            ) : despesas.length === 0 ? (
+              <div className="text-gray-500">Nenhuma despesa fixa cadastrada.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Nome</th>
+                      <th className="px-3 py-2 text-left">Valor</th>
+                      <th className="px-3 py-2 text-left">Vencimento</th>
+                      <th className="px-3 py-2 text-left">Categoria</th>
+                      <th className="px-3 py-2 text-left">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {despesas.map((d) => (
+                      <tr key={d.id} className="border-t">
+                        <td className="px-3 py-2">{d.nome}</td>
+                        <td className="px-3 py-2">{fmtBRL(d.valor)}</td>
+                        <td className="px-3 py-2">dia {d.diaVencimento}</td>
+                        <td className="px-3 py-2">{d.categoria || '-'}</td>
+                        <td className="px-3 py-2">
+                          <button
+                            className="px-3 py-1.5 rounded-lg bg-rose-100 text-rose-800 hover:bg-rose-200"
+                            onClick={async () => {
+                              if (!confirm('Excluir esta despesa?')) return
+                              try {
+                                const r = await fetch(`/api/predios/${predioId}/financeiro/despesas-fixas/${d.id}`, { method: 'DELETE' })
+                                if (!r.ok) throw new Error('Falha ao excluir')
+                                await Promise.all([loadDespesasFixas(), loadResumo()])
+                              } catch (e) {
+                                const msg = e instanceof Error ? e.message : 'Erro ao excluir'
+                                alert(msg)
+                              }
+                            }}
+                          >
+                            Excluir
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tabela */}
