@@ -4,6 +4,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { getUnidadeTipoLabel, getResponsavelTipoLabel } from '@/domain/unidades'
 import ModalEditarUnidade from '@/components/ModalEditarUnidade'
 import ModalConfirmarExclusao from '@/components/ModalConfirmarExclusao'
 
@@ -105,8 +106,7 @@ export default function UnidadesPage() {
     unidades.length > 0 ? Math.round((ocupadas / unidades.length) * 100) : 0
 
   const getRespAtivo = (rs: Responsavel[]) => rs.find((r) => r.ativo) || rs[0] || null
-  const getTipoLabel = (t: Unidade['tipo']) =>
-    ({ apartamento: 'Apartamento', cobertura: 'Cobertura', loja: 'Loja', garagem: 'Garagem' }[t] || t)
+  const getTipoLabel = (t: Unidade['tipo']) => getUnidadeTipoLabel(t)
 
   /* --------- Ações CRUD --------- */
   const fetchUnidades = async () => {

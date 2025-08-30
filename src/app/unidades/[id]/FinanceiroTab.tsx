@@ -29,7 +29,7 @@ export default function FinanceiroUnidadeTab({ unidadeId }: { unidadeId: string 
   async function pagar(id: string) {
     setRegistrando(id)
     try {
-      const r = await fetch(`/api/pagamentos/${id}/pagar`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+      const r = await fetch(`/api/pagamentos/${id}/pagar`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' })
       const j = await r.json().catch(() => ({}))
       if (!r.ok) throw new Error(j.message ?? 'Erro ao pagar')
       await carregar()
