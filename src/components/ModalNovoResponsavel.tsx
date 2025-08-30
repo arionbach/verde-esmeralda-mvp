@@ -38,7 +38,7 @@ export default function ModalNovoResponsavel({ isOpen, onClose, unidadeId, predi
 
       onSuccess()
       onClose()
-    } catch (e: any) {
+    } catch (e) {
       setErro(e.message)
     } finally {
       setLoading(false)
@@ -83,3 +83,4 @@ export default function ModalNovoResponsavel({ isOpen, onClose, unidadeId, predi
     </Dialog>
   )
 }
+

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/app/api/_utils.ts
 import { NextResponse } from 'next/server'
 
@@ -34,7 +35,7 @@ export function noContent() {
 /**
  * 400 Bad Request - Dados inválidos
  */
-export function bad(message: string, details?: any) {
+export function bad(message: string, details?: unknown) {
   return NextResponse.json(
     { 
       error: message,
@@ -87,7 +88,7 @@ export function conflict(message: string) {
 /**
  * 422 Unprocessable Entity - Validação de negócio falhou
  */
-export function unprocessable(message: string, details?: any) {
+export function unprocessable(message: string, details?: unknown) {
   return NextResponse.json(
     { 
       error: message,

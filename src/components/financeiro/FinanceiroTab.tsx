@@ -60,7 +60,7 @@ export default function FinanceiroTab({ predioId }: Props) {
       if (!r.ok) throw new Error((await safeJson(r))?.error || 'Falha na lista de pagamentos')
       const j = await r.json()
       setItens(j.itens)
-    } catch (e: any) {
+    } catch (e) {
       setErroTabela(e?.message || 'Falha ao carregar pagamentos')
       setItens([])
     } finally {
@@ -85,8 +85,9 @@ export default function FinanceiroTab({ predioId }: Props) {
       const r = await fetch(url, { method: 'POST' })
       if (!r.ok) throw new Error((await safeJson(r))?.error || 'Falha ao gerar')
       await Promise.all([loadResumo(), loadTabela()])
-    } catch (e: any) {
-      alert(e?.message || 'Erro ao gerar mensalidade')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao gerar mensalidade'
+      alert(msg)
     } finally {
       setWorking(false)
     }
@@ -98,8 +99,9 @@ export default function FinanceiroTab({ predioId }: Props) {
       const r = await fetch(`/api/predios/${predioId}/financeiro/recalcular?competencia=${competencia}`, { method: 'POST' })
       if (!r.ok) throw new Error((await safeJson(r))?.error || 'Falha ao recalcular')
       await Promise.all([loadResumo(), loadTabela()])
-    } catch (e: any) {
-      alert(e?.message || 'Erro ao recalcular')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao recalcular'
+      alert(msg)
     } finally {
       setWorking(false)
     }
@@ -113,8 +115,9 @@ export default function FinanceiroTab({ predioId }: Props) {
       const r = await fetch(`/api/pagamentos/${id}/pagar`, { method: 'PATCH' })
       if (!r.ok) throw new Error((await safeJson(r))?.error || 'Falha ao pagar')
       await Promise.all([loadResumo(), loadTabela()])
-    } catch (e: any) {
-      alert(e?.message || 'Erro ao marcar pago')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao marcar pago'
+      alert(msg)
       setItens(prev) // rollback
     }
   }
@@ -127,8 +130,9 @@ export default function FinanceiroTab({ predioId }: Props) {
       const r = await fetch(`/api/pagamentos/${id}/estornar`, { method: 'PATCH' })
       if (!r.ok) throw new Error((await safeJson(r))?.error || 'Falha ao estornar')
       await Promise.all([loadResumo(), loadTabela()])
-    } catch (e: any) {
-      alert(e?.message || 'Erro ao estornar')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Erro ao estornar'
+      alert(msg)
       setItens(prev) // rollback
     }
   }
@@ -280,3 +284,4 @@ export default function FinanceiroTab({ predioId }: Props) {
 }
 
 async function safeJson(r: Response) { try { return await r.json() } catch { return null } }
+

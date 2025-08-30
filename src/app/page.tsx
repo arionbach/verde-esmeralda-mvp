@@ -85,7 +85,7 @@ export default function Home() {
       }
       setPredioExcluindo(null);
       await carregarPredios();
-    } catch (e: any) {
+    } catch (e) {
       alert(e?.message || "Falha ao excluir prédio");
     }
   };
@@ -373,3 +373,4 @@ function AlertCard({
     </div>
   );
 }
+

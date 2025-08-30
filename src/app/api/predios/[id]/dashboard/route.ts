@@ -4,12 +4,12 @@ import { UnidadeStatus, UnidadeTipo } from "@prisma/client"
 import { toUnidadeStatusEnum, toUnidadeTipoEnum } from "@/domain/unidades"
 
 // Helpers para aceitar valores em minúsculas do front
-function normalizeTipo(v: any | undefined): UnidadeTipo | undefined {
+function normalizeTipo(v: unknown | undefined): UnidadeTipo | undefined {
   if (v == null) return undefined
   return toUnidadeTipoEnum(v)
 }
 
-function normalizeStatus(v: any | undefined): UnidadeStatus | undefined {
+function normalizeStatus(v: unknown | undefined): UnidadeStatus | undefined {
   if (v == null) return undefined
   return toUnidadeStatusEnum(v)
 }

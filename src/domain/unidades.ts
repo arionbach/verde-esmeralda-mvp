@@ -29,7 +29,7 @@ const RESPONSAVEL_LABEL_MAP: Record<string, string> = {
 }
 
 // Converte entradas variadas para enums do Prisma
-export function toUnidadeTipoEnum(v: any): UnidadeTipo {
+export function toUnidadeTipoEnum(v: unknown): UnidadeTipo {
   const s = String(v ?? '').trim()
   if (!s) return UnidadeTipo.APARTAMENTO
   const upper = s.toUpperCase()
@@ -45,7 +45,7 @@ export function toUnidadeTipoEnum(v: any): UnidadeTipo {
     default: {
       // aceitar pt-br minúsculo do front
       const viaUi = TIPO_UI_MAP[upper]
-      if (viaUi) return (UnidadeTipo as any)[upper]
+      if (viaUi) return UnidadeTipo[upper as keyof typeof UnidadeTipo]
       const uiLower = s.toLowerCase()
       if (uiLower in TIPO_LABEL_MAP) {
         switch (uiLower) {
@@ -64,7 +64,7 @@ export function toUnidadeTipoEnum(v: any): UnidadeTipo {
   }
 }
 
-export function toUnidadeStatusEnum(v: any): UnidadeStatus {
+export function toUnidadeStatusEnum(v: unknown): UnidadeStatus {
   const s = String(v ?? '').trim()
   if (!s) return UnidadeStatus.VAZIO
   const upper = s.toUpperCase()
@@ -82,7 +82,7 @@ export function toUnidadeStatusEnum(v: any): UnidadeStatus {
   }
 }
 
-export function toResponsavelTipoEnum(v: any): ResponsavelTipo {
+export function toResponsavelTipoEnum(v: unknown): ResponsavelTipo {
   const s = String(v ?? '').trim()
   if (!s) return ResponsavelTipo.PROPRIETARIO
   const upper = s.toUpperCase()
@@ -123,4 +123,3 @@ export function getResponsavelTipoLabel(v: string | ResponsavelTipo): string {
   const key = typeof v === 'string' ? v : String(v)
   return RESPONSAVEL_LABEL_MAP[key] || RESPONSAVEL_LABEL_MAP[key.toLowerCase()] || key
 }
-

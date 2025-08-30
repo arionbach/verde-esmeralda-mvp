@@ -87,3 +87,4 @@ export default function ModalEditarPredio({ predio, onClose, onUpdate }: ModalEd
     </div>
   );
 }
+
