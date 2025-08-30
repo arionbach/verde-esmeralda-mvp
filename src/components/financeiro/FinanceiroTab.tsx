@@ -61,7 +61,8 @@ export default function FinanceiroTab({ predioId }: Props) {
       const j = await r.json()
       setItens(j.itens)
     } catch (e) {
-      setErroTabela(e?.message || 'Falha ao carregar pagamentos')
+      const msg = e instanceof Error ? e.message : 'Falha ao carregar pagamentos'
+      setErroTabela(msg)
       setItens([])
     } finally {
       setLoadingTabela(false)
