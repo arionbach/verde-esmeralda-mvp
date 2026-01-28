@@ -10,7 +10,7 @@ type ResumoResponse = {
   pendencias: Pendencia[]
 }
 
-export default function FinanceiroUnidadeTab({ unidadeId }: { unidadeId: string }) {
+export default function FinanceiroUnidadeTab({ unidadeId, predioId }: { unidadeId: string; predioId: string }) {
   const [competencia, setCompetencia] = useState(defaultCompetencia())
   const ym = useMemo(() => competencia.slice(0,7), [competencia])
   const [resumo, setResumo] = useState<ResumoResponse | null>(null)
@@ -20,7 +20,7 @@ export default function FinanceiroUnidadeTab({ unidadeId }: { unidadeId: string 
   async function carregar() {
     setLoading(true)
     try {
-      const r = await fetch(`/api/unidades/${unidadeId}/financeiro/resumo?competencia=${ym}`)
+      const r = await fetch(`/api/predios/${predioId}/unidades/${unidadeId}/financeiro/resumo?competencia=${ym}`)
       const j = await r.json()
       if (!r.ok) throw new Error(j.error ?? 'Falha ao carregar')
       setResumo(j)
@@ -36,7 +36,7 @@ export default function FinanceiroUnidadeTab({ unidadeId }: { unidadeId: string 
     } finally { setRegistrando(null) }
   }
 
-  useEffect(() => { carregar() }, [ym, unidadeId])
+  useEffect(() => { carregar() }, [ym, unidadeId, predioId])
 
   return (
     <div className="space-y-4">

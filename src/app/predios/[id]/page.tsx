@@ -6,7 +6,7 @@ import Link from "next/link";
 import { getUnidadeTipoLabel, getResponsavelTipoLabel } from "@/domain/unidades";
 import { useParams, useSearchParams } from "next/navigation";
 import TabUnidades from "@/components/TabUnidades";
-import FinanceiroTab from "@/components/financeiro/FinanceiroTab";
+import FinanceiroTab from "@/components/predios/financeiro/FinanceiroTab";
 
 type TabKey = "unidades" | "financeiro" | "comunicados" | "relatorios";
 
@@ -207,7 +207,7 @@ export default function PredioDashboardPage() {
           )}
 
           {tab === "financeiro" && (
-           <FinanceiroTab predioId={params.id} />
+            <FinanceiroTab predioId={params.id} />
           )}
           {tab === "comunicados" && (
             <Placeholder

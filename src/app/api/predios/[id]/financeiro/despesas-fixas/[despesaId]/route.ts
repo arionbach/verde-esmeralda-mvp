@@ -2,7 +2,7 @@
 import { NextRequest } from 'next/server'
 import { isValidUUID, ok, bad, noContent, handlePrismaError } from '@/app/api/_utils'
 import { DespesaFixaUpdateSchema } from '@/app/api/_schemas'
-import { updateDespesaFixa, deleteDespesaFixa } from '@/server/financeiro.service'
+import { updateDespesaFixa, deleteDespesaFixa } from '@/server/financeiro/financeiro.service'
 
 type Ctx = { params: Promise<{ id: string; despesaId: string }> }
 
@@ -30,4 +30,3 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
     return handlePrismaError(err)
   }
 }
-

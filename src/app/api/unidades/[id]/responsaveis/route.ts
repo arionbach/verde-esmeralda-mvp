@@ -1,3 +1,4 @@
+// DEPRECATED: usar /api/predios/:predioId/unidades/:unidadeId/responsaveis
 // src/app/api/unidades/[id]/responsaveis/route.ts
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
@@ -28,6 +29,11 @@ const CreateResponsavelSchema = z.object({
 export async function GET(_req: NextRequest, { params }: RouteParams) {
   try {
     const { id: unidadeId } = await params
+    console.warn("[DEPRECATED] /api/unidades/:id/responsaveis called", {
+      unidadeId,
+      method: "GET",
+      referer: _req.headers.get("referer") ?? undefined,
+    })
     if (!isValidUUID(unidadeId)) return bad('ID inválido')
 
     const unidade = await prisma.unidade.findUnique({
@@ -56,6 +62,11 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
     const { id: unidadeId } = await params
+    console.warn("[DEPRECATED] /api/unidades/:id/responsaveis called", {
+      unidadeId,
+      method: "POST",
+      referer: req.headers.get("referer") ?? undefined,
+    })
     if (!isValidUUID(unidadeId)) return bad('ID inválido')
 
     const unidade = await prisma.unidade.findUnique({

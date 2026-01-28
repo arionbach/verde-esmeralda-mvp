@@ -1,31 +1,18 @@
-// src/app/api/pagamentos/[pagamentoId]/pagar/route.ts
+// src/app/api/pagamentos/[id]/pagar/route.ts
 import { NextRequest } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { pagarPagamento } from '@/server/financeiro/financeiro.service'
 import { ok, bad, handlePrismaError, isValidUUID } from '@/app/api/_utils'
 
-type Ctx = { params: Promise<{ id: string }> }
-
-export async function PATCH(_req: NextRequest, { params }: Ctx) {
+export async function PATCH(_req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await params
+    const { id } = await ctx.params
     if (!isValidUUID(id)) return bad('ID inválido')
 
-    const now = new Date()
-    const pago = await prisma.pagamento.update({
-      where: { id },
-      data: { status: 'PAGO', dataPagamento: now },
-      select: {
-        id: true, status: true, dataPagamento: true, valor: true,
-        unidadeId: true, competencia: true
-      }
-    })
-
-    return ok({
-      ...pago,
-      valor: Number(pago.valor)
-    })
+    const pago = await pagarPagamento(id)
+    return ok({ ...pago, valor: Number(pago.valor) })
   } catch (err) {
     console.error('[PATCH /pagamentos/:id/pagar]', err)
     return handlePrismaError(err)
   }
 }
+

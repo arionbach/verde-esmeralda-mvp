@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { ok, bad, handlePrismaError, isValidUUID } from '@/app/api/_utils'
-import { gerarMensalidades } from '@/server/financeiro.service'
+import { gerarMensalidades } from '@/server/financeiro/financeiro.service'
 
 type RouteCtx = { params: Promise<{ id: string }> }
 

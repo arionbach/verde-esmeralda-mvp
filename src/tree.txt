@@ -1,0 +1,223 @@
+Listagem de caminhos de pasta para o volume Windows-SSD
+O número de série do volume é 2C43-FBB3
+C:.
+¦   tree.txt
+¦   
++---agents
+¦   ¦   core.ts
+¦   ¦   
+¦   +---financeiro
+¦           gerar-mensalidades.agent.ts
+¦           runner.ts
+¦           
++---app
+¦   ¦   globals.css
+¦   ¦   layout.tsx
+¦   ¦   page.tsx
+¦   ¦   
+¦   +---api
+¦   ¦   ¦   _schemas.ts
+¦   ¦   ¦   _serializers.ts
+¦   ¦   ¦   _utils.ts
+¦   ¦   ¦   
+¦   ¦   +---agents
+¦   ¦   ¦   +---financeiro
+¦   ¦   ¦       +---mensalidades
+¦   ¦   ¦               route.ts
+¦   ¦   ¦               
+¦   ¦   +---pagamentos
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦       +---estornar
+¦   ¦   ¦       ¦       route.ts
+¦   ¦   ¦       ¦       
+¦   ¦   ¦       +---pagar
+¦   ¦   ¦               route.ts
+¦   ¦   ¦               
+¦   ¦   +---predios
+¦   ¦   ¦   ¦   route.ts
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---unidades
+¦   ¦   ¦   ¦   +---[id]
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦       ¦   route.ts
+¦   ¦   ¦       ¦   
+¦   ¦   ¦       +---dashboard
+¦   ¦   ¦       ¦       route.ts
+¦   ¦   ¦       ¦       
+¦   ¦   ¦       +---financeiro
+¦   ¦   ¦       ¦   +---competencia
+¦   ¦   ¦       ¦   ¦   +---fechar
+¦   ¦   ¦       ¦   ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦   ¦       
+¦   ¦   ¦       ¦   ¦   +---status
+¦   ¦   ¦       ¦   ¦           route.ts
+¦   ¦   ¦       ¦   ¦           
+¦   ¦   ¦       ¦   +---consolidado
+¦   ¦   ¦       ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦       
+¦   ¦   ¦       ¦   +---despesas-fixas
+¦   ¦   ¦       ¦   ¦   ¦   route.ts
+¦   ¦   ¦       ¦   ¦   ¦   
+¦   ¦   ¦       ¦   ¦   +---gerar
+¦   ¦   ¦       ¦   ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦   ¦       
+¦   ¦   ¦       ¦   ¦   +---[despesaId]
+¦   ¦   ¦       ¦   ¦           route.ts
+¦   ¦   ¦       ¦   ¦           
+¦   ¦   ¦       ¦   +---gerar-mensal
+¦   ¦   ¦       ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦       
+¦   ¦   ¦       ¦   +---gerar-taxas
+¦   ¦   ¦       ¦   +---mensalidades
+¦   ¦   ¦       ¦   ¦   ¦   route.ts
+¦   ¦   ¦       ¦   ¦   ¦   
+¦   ¦   ¦       ¦   ¦   +---gerar-por-rateio
+¦   ¦   ¦       ¦   ¦           route.ts
+¦   ¦   ¦       ¦   ¦           
+¦   ¦   ¦       ¦   +---pagamentos
+¦   ¦   ¦       ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦       
+¦   ¦   ¦       ¦   +---rateio
+¦   ¦   ¦       ¦   ¦   +---fixas
+¦   ¦   ¦       ¦   ¦           route.ts
+¦   ¦   ¦       ¦   ¦           
+¦   ¦   ¦       ¦   +---recalcular
+¦   ¦   ¦       ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦       
+¦   ¦   ¦       ¦   +---recalcular-status
+¦   ¦   ¦       ¦   +---relatorio-mensal
+¦   ¦   ¦       ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦       
+¦   ¦   ¦       ¦   +---resumo
+¦   ¦   ¦       ¦   ¦       route.ts
+¦   ¦   ¦       ¦   ¦       
+¦   ¦   ¦       ¦   +---resumo-v3
+¦   ¦   ¦       ¦           route.ts
+¦   ¦   ¦       ¦           
+¦   ¦   ¦       +---responsaveis
+¦   ¦   ¦       ¦       route.ts
+¦   ¦   ¦       ¦       
+¦   ¦   ¦       +---unidades
+¦   ¦   ¦           ¦   route.ts
+¦   ¦   ¦           ¦   
+¦   ¦   ¦           +---[unidadeId]
+¦   ¦   ¦               ¦   route.ts
+¦   ¦   ¦               ¦   
+¦   ¦   ¦               +---excecoes
+¦   ¦   ¦               ¦       route.ts
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---responsaveis
+¦   ¦   ¦                   ¦   route.ts
+¦   ¦   ¦                   ¦   
+¦   ¦   ¦                   +---[responsavelId]
+¦   ¦   ¦                           route.ts
+¦   ¦   ¦                           
+¦   ¦   +---responsaveis
+¦   ¦   ¦   +---[id]
+¦   ¦   ¦           route.ts
+¦   ¦   ¦           
+¦   ¦   +---unidades
+¦   ¦       +---[id]
+¦   ¦           ¦   route.ts
+¦   ¦           ¦   
+¦   ¦           +---financeiro
+¦   ¦           ¦   +---resumo
+¦   ¦           ¦           route.ts
+¦   ¦           ¦           
+¦   ¦           +---responsaveis
+¦   ¦                   route.ts
+¦   ¦                   
+¦   +---predios
+¦   ¦   ¦   page.tsx
+¦   ¦   ¦   
+¦   ¦   +---[id]
+¦   ¦   ¦   ¦   page.tsx
+¦   ¦   ¦   ¦   
+¦   ¦   ¦   +---financeiro
+¦   ¦   ¦   +---manutencoes
+¦   ¦   ¦   +---unidades
+¦   ¦   ¦       ¦   page.tsx
+¦   ¦   ¦       ¦   
+¦   ¦   ¦       +---nova
+¦   ¦   ¦       ¦       page.tsx
+¦   ¦   ¦       ¦       
+¦   ¦   ¦       +---[unidadeId]
+¦   ¦   ¦           ¦   page.tsx
+¦   ¦   ¦           ¦   
+¦   ¦   ¦           +---responsaveis
+¦   ¦   ¦               ¦   page.tsx
+¦   ¦   ¦               ¦   
+¦   ¦   ¦               +---novo
+¦   ¦   ¦               ¦       page.tsx
+¦   ¦   ¦               ¦       
+¦   ¦   ¦               +---[responsavelId]
+¦   ¦   ¦                   ¦   page.tsx
+¦   ¦   ¦                   ¦   
+¦   ¦   ¦                   +---editar
+¦   ¦   ¦                   ¦       page.tsx
+¦   ¦   ¦                   ¦       
+¦   ¦   ¦                   +---excluir
+¦   ¦   ¦                           page.tsx
+¦   ¦   ¦                           
+¦   ¦   +---[predioId]
+¦   +---unidades
+¦       +---[id]
+¦               FinanceiroTab.tsx
+¦               
++---components
+¦   ¦   AppHeader.tsx
+¦   ¦   Breadcrumbs.tsx
+¦   ¦   ModalConfirmarExclusao.tsx
+¦   ¦   ModalEditarPredio.tsx
+¦   ¦   ModalEditarUnidade.tsx
+¦   ¦   ModalNovoResponsavel.tsx
+¦   ¦   ResponsavelForm.tsx
+¦   ¦   TabUnidades.tsx
+¦   ¦   
+¦   +---financeiro
+¦   ¦       FinanceiroPlaceholder.tsx
+¦   ¦       
+¦   +---predios
+¦   ¦   ¦   PredioForm.tsx
+¦   ¦   ¦   
+¦   ¦   +---financeiro
+¦   ¦           FinanceiroTab.tsx
+¦   ¦           RelatorioMensal.tsx
+¦   ¦           
+¦   +---ui
+¦   +---unidades
++---domain
+¦       unidades.ts
+¦       
++---lib
+¦       prisma.ts
+¦       
++---server
+¦   ¦   financeiro.politicas.service.ts
+¦   ¦   README.md
+¦   ¦   
+¦   +---financeiro
+¦   ¦   ¦   .gitkeep
+¦   ¦   ¦   ajuste-excecao.service.ts
+¦   ¦   ¦   competencia-status.service.ts
+¦   ¦   ¦   consolidacao.service.ts
+¦   ¦   ¦   financeiro.service.ts
+¦   ¦   ¦   gerador-pagamentos.service.ts
+¦   ¦   ¦   README.md
+¦   ¦   ¦   receita.service.ts
+¦   ¦   ¦   relatorio-financeiro.service.ts
+¦   ¦   ¦   
+¦   ¦   +---__tests__
+¦   ¦           financeiro.smoke.test.ts
+¦   ¦           gerador.mensal.smoke.test.ts
+¦   ¦           
+¦   +---repositories
+¦   ¦       CompetenciaStatusRepository.ts
+¦   ¦       PagamentoRepository.ts
+¦   ¦       
+¦   +---__tests__
+¦           financeiro.politicas.invariante.test.ts
+¦           
++---types
+        unidade.ts
+        

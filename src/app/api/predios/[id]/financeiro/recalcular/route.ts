@@ -2,7 +2,7 @@
 import { NextRequest } from 'next/server'
 import { isValidUUID, ok, bad, handlePrismaError } from '@/app/api/_utils'
 import { z } from 'zod'
-import { recalcularStatus } from '@/server/financeiro.service'
+import { recalcularStatus } from '@/server/financeiro/financeiro.service'
 
 const QuerySchema = z.object({
   competencia: z.string().regex(/^\d{4}-\d{2}$/, 'Use YYYY-MM'),
@@ -26,4 +26,3 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     return handlePrismaError(err)
   }
 }
-

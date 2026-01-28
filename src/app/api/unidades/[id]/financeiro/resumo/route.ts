@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getResumoFinanceiroUnidade } from '@/server/financeiro/financeiro.service'
 import { z } from 'zod'
 import type { Prisma } from '@prisma/client'
 
@@ -20,42 +20,21 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
 
     const competencia = parseCompetencia(parsed.data.competencia)
-    const hoje = new Date()
+  const srv = await getResumoFinanceiroUnidade(unidadeId, parsed.data.competencia)
 
-    const pagamentos = await prisma.pagamento.findMany({
-      where: { competencia, unidadeId },
-      select: { id: true, unidadeId: true, valor: true, status: true, vencimento: true, tipo: true },
-      orderBy: [{ vencimento: 'asc' }]
-    })
-
-    const totalDevido = pagamentos
-      .filter(p => p.status === 'PENDENTE' || p.status === 'ATRASADO')
-      .reduce((s, p) => s + dec(p.valor), 0)
-
-    const totalRecebido = pagamentos
-      .filter(p => p.status === 'PAGO')
-      .reduce((s, p) => s + dec(p.valor), 0)
-
-    const pendencias = pagamentos
-      .filter(p => p.status !== 'PAGO')
-      .map(p => ({
-        id: p.id,
-        unidadeId: p.unidadeId,
-        valor: dec(p.valor),
-        status: p.status,
-        diasAtraso: p.vencimento < hoje ? Math.floor((+hoje - +p.vencimento) / 86400000) : 0
-      }))
-
-    return NextResponse.json({
-      competencia: competencia.toISOString().slice(0, 10),
-      kpis: {
-        totalDevido,
-        totalRecebido,
-        inadimplentes: pendencias.length ? 1 : 0,
-        inadimplenciaPct: pendencias.length ? 100 : 0
-      },
-      pendencias
-    })
+  return NextResponse.json({
+    competencia: srv.competencia.toISOString().slice(0, 10),
+    kpis: {
+      totalDevido: dec(srv.kpis.totalDevido),
+      totalRecebido: dec(srv.kpis.totalRecebido),
+      inadimplentes: srv.kpis.inadimplentes,
+      inadimplenciaPct: srv.kpis.inadimplenciaPct,
+    },
+    pendencias: srv.pendencias.map((p) => ({
+      ...p,
+      valor: dec(p.valor),
+    })),
+  })
   } catch (e: any) {
     console.error(e)
     return NextResponse.json({ error: e.message ?? 'Erro ao gerar resumo' }, { status: 500 })

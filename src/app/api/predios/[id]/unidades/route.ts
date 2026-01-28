@@ -14,6 +14,8 @@ import {
 import { z } from 'zod'
 import { UnidadeTipo, UnidadeStatus } from '@prisma/client'
 import { toUnidadeStatusEnum, toUnidadeTipoEnum } from '@/domain/unidades'
+import { parseCompetencia } from '@/server/financeiro/financeiro.service'
+import { getReceitaMensalPredio } from '@/server/financeiro/receita.service'
 
 /**
  * Tipo dos parâmetros da rota (Next.js 15)
@@ -66,6 +68,7 @@ export async function GET(
     const searchParams = req.nextUrl.searchParams
     const status = searchParams.get('status')
     const tipo = searchParams.get('tipo')
+    const competenciaStr = searchParams.get('competencia')
     
     // Busca as unidades com responsáveis ativoss
     const unidades = await prisma.unidade.findMany({
@@ -125,6 +128,13 @@ export async function GET(
       updatedAt: u.updatedAt
     }))
     
+    // Receita mensal oficial baseada em Pagamento (Modelo A)
+    let receitaMensal: number | null = null
+    if (competenciaStr && competenciaStr.length >= 7) {
+      const { inicio } = parseCompetencia(competenciaStr)
+      receitaMensal = await getReceitaMensalPredio(predioId, inicio)
+    }
+
     return ok({
       predio: {
         id: predio.id,
@@ -136,7 +146,7 @@ export async function GET(
         ocupadas: unidadesFormatadas.filter(u => u.status === 'ocupado').length,
         vazias: unidadesFormatadas.filter(u => u.status === 'vazio').length,
         inadimplentes: unidadesFormatadas.filter(u => u.inadimplente).length,
-        receitaMensal: unidadesFormatadas.reduce((sum, u) => sum + u.valorTaxa, 0)
+        receitaMensal,
       }
     })
   } catch (error) {

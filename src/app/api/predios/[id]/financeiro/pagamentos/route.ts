@@ -1,7 +1,7 @@
 // src/app/api/predios/%5Bid%5D/financeiro/pagamentos/route.ts
 import { NextRequest } from 'next/server'
 import { ok, bad, handlePrismaError, isValidUUID } from '@/app/api/_utils'
-import { listPagamentos } from '@/server/financeiro.service'
+import { getPagamentos } from '@/server/financeiro/financeiro.service'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
     if (!competenciaStr) return bad('competencia (YYYY-MM) obrigatória')
 
-    const data = await listPagamentos(predioId, competenciaStr, status as any)
+    const data = await getPagamentos(predioId, competenciaStr, status as any)
     return ok(data)
   } catch (err) {
     console.error('[GET /financeiro/pagamentos]', err)

@@ -1,7 +1,7 @@
 // src/app/api/predios/[id]/financeiro/despesas-fixas/gerar/route.ts
 import { NextRequest } from 'next/server'
 import { isValidUUID, ok, bad, handlePrismaError } from '@/app/api/_utils'
-import { gerarLancamentosDespesasFixas } from '@/server/financeiro.service'
+import { gerarLancamentosDespesasFixas } from '@/server/financeiro/financeiro.service'
 
 type Ctx = { params: Promise<{ id: string }> }
 
@@ -16,7 +16,13 @@ export async function POST(req: NextRequest, { params }: Ctx) {
     const result = await gerarLancamentosDespesasFixas(predioId, competencia, { sobrescrever })
     return ok({ competencia, ...result })
   } catch (err) {
-    return handlePrismaError(err)
+    console.error('[gerarDespesasFixas]', err)
+
+    if (err instanceof Error && 'code' in err) {
+      // erro Prisma conhecido
+      return handlePrismaError(err)
+    }
+
+    return bad('Erro interno ao gerar despesas fixas')
   }
 }
-

@@ -1,0 +1,114 @@
+
+enum PagamentoStatus {
+  PENDENTE
+  PAGO
+  ATRASADO
+  CANCELADO
+}
+
+enum RegraRateio {
+  IGUAL
+  FRACAO_IDEAL
+  VALOR_FIXO_POR_UNIDADE
+}
+
+enum OrigemRateio {
+  DESPESA_FIXA
+  DESPESA_VARIAVEL
+  MANUTENCAO
+  AJUSTE_UNIDADE
+}
+
+enum NaturezaLancamento {
+  DEBITO
+  CREDITO
+}
+
+model DespesaFixa {
+  id        String      @id @default(cuid())
+  predioId  String
+  nome      String
+  categoria String
+  valor     Decimal     @db.Decimal(14, 2)
+  rateio    RegraRateio @default(IGUAL)
+  inicio    DateTime    @map("competenciaInicio")
+  fim       DateTime?   @map("competenciaFim")
+  ativo     Boolean     @default(true)
+
+  predio  Predio                       @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  valores DespesaFixaValorPorUnidade[]
+
+  // Relação oposta adicionada
+  pagamentos Pagamento[]
+
+  @@index([predioId, ativo])
+  @@index([predioId, inicio, fim])
+  @@index([predioId, categoria, ativo])
+}
+
+model DespesaFixaValorPorUnidade {
+  id        String  @id @default(cuid())
+  despesaId String
+  unidadeId String
+  valor     Decimal @db.Decimal(14, 2)
+
+  despesa DespesaFixa @relation(fields: [despesaId], references: [id], onDelete: Cascade)
+  unidade Unidade     @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  @@unique([despesaId, unidadeId])
+  @@index([unidadeId])
+}
+
+model DespesaVariavel {
+  id          String      @id @default(cuid())
+  predioId    String
+  nome        String
+  categoria   String
+  valor       Decimal     @db.Decimal(14, 2)
+  rateio      RegraRateio @default(IGUAL)
+  competencia DateTime
+
+  predio Predio @relation(fields: [predioId], references: [id], onDelete: Cascade)
+
+  @@index([predioId, competencia])
+}
+
+model AjusteUnidade {
+  id          String             @id @default(cuid())
+  predioId    String
+  unidadeId   String
+  competencia DateTime
+  descricao   String
+  valor       Decimal            @db.Decimal(14, 2)
+  natureza    NaturezaLancamento @default(CREDITO)
+  createdAt   DateTime           @default(now())
+
+  predio  Predio  @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  unidade Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+
+  @@index([predioId, competencia])
+  @@index([unidadeId, competencia])
+}
+
+model RateioItem {
+  id          String             @id @default(cuid())
+  predioId    String
+  competencia DateTime
+  unidadeId   String
+  origemTipo  OrigemRateio
+  origemId    String?
+  descricao   String
+  valor       Decimal            @db.Decimal(14, 2)
+  natureza    NaturezaLancamento @default(DEBITO)
+  criadoPor   String? // opcional
+  createdAt   DateTime           @default(now())
+
+  predio  Predio  @relation(fields: [predioId], references: [id], onDelete: Cascade)
+  unidade Unidade @relation(fields: [unidadeId], references: [id], onDelete: Cascade)
+  // ou @@unique([unidadeId, competencia, grupoId]) se usar grupoId
+
+  // Escolha UMA estratégia de idempotência:
+  @@unique([unidadeId, competencia, origemTipo, origemId])
+  @@index([predioId, competencia, unidadeId])
+  @@index([unidadeId, competencia])
+}

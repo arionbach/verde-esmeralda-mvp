@@ -3,11 +3,17 @@
 import { NextResponse } from 'next/server'
 
 /**
- * Respostas padronizadas para a API
- * Facilita manutenção e garante consistência
+ * Utils de boundary para rotas da API.
+ * Blocos:
+ * - HTTP (respostas e erros padronizados)
+ * - Validação (helpers simples p/ IDs, etc.)
+ * - Paginação (parsing e resposta paginada)
+ * - Serialização (helpers seguros p/ conversões no boundary)
+ * - Objetos (helpers utilitários não-domínio)
  */
 
-// ============= SUCESSOS =============
+// ==================== HTTP ====================
+// Sucesso
 
 /**
  * 200 OK - Requisição bem sucedida
@@ -30,7 +36,7 @@ export function noContent() {
   return new NextResponse(null, { status: 204 })
 }
 
-// ============= ERROS DO CLIENTE =============
+// Erros do cliente
 
 /**
  * 400 Bad Request - Dados inválidos
@@ -98,7 +104,7 @@ export function unprocessable(message: string, details?: unknown) {
   )
 }
 
-// ============= ERROS DO SERVIDOR =============
+// Erros do servidor
 
 /**
  * 500 Internal Server Error - Erro genérico
@@ -121,7 +127,7 @@ export function unavailable(message = 'Serviço temporariamente indisponível') 
   )
 }
 
-// ============= HELPERS ADICIONAIS =============
+// ==================== VALIDAÇÃO ====================
 
 /**
  * Trata erros do Prisma de forma amigável
@@ -162,6 +168,7 @@ export function isValidUUID(uuid: string): boolean {
   return regex.test(uuid) || cuidRegex.test(uuid)
 }
 
+// ==================== PAGINAÇÃO ====================
 /**
  * Parseia e valida parâmetros de paginação
  */
@@ -216,6 +223,7 @@ export function paginated<T>(
   return ok(response)
 }
 
+// ==================== OBJETOS ====================
 /**
  * Remove campos undefined de objetos
  */
@@ -228,8 +236,9 @@ export function cleanObject<T extends Record<string, any>>(obj: T): Partial<T> {
   }, {} as Partial<T>)
 }
 
+// ==================== SERIALIZAÇÃO ====================
 /**
- * Converte string para número de forma segura
+ * Converte string para número de forma segura (uso em boundaries)
  */
 export function toNumberSafe(value: any): number | null {
   if (value == null || value === '') return null
