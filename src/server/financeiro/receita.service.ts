@@ -24,5 +24,5 @@ export async function getReceitaMensalPredio(
     },
   })
 
-  return Number(agg._sum.valor ?? 0)
+  return Number(agg._sum?.valor ?? 0)
 }

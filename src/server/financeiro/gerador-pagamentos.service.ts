@@ -5,17 +5,13 @@
 
 import { prisma } from '@/lib/prisma'
 import { PagamentoStatus, PagamentoTipo, NaturezaLancamento, Prisma } from '@prisma/client'
-import { endOfMonth, startOfMonth, parse } from 'date-fns'
 import { isCompetenciaFechada } from '@/server/financeiro/competencia-status.service'
+import { parseCompetencia, calcularVencimento } from '@/lib/competencia'
 
 export type GeradorResumo = { competencia: string; created: number; skipped: number; totalUnidades: number }
 
-export function parseCompetenciaYYMM(competencia: string) {
-  const base = competencia?.slice(0, 7)
-  const comp = parse(base, 'yyyy-MM', new Date())
-  if (isNaN(comp.getTime())) throw new Error('Competência inválida. Use YYYY-MM')
-  return { competenciaStr: base!, inicio: startOfMonth(comp), fim: endOfMonth(comp) }
-}
+// Re-export para manter compatibilidade com código existente
+export const parseCompetenciaYYMM = parseCompetencia
 
 export async function gerarPagamentosDaCompetencia(
   predioId: string,
@@ -33,7 +29,7 @@ export async function gerarPagamentosDaCompetencia(
   let skipped = 0
 
   const dia = opts?.vencimentoDia && opts.vencimentoDia >= 1 && opts.vencimentoDia <= 28 ? opts.vencimentoDia : 10
-  const vencimento = new Date(inicio.getFullYear(), inicio.getMonth(), dia)
+  const vencimento = calcularVencimento(inicio, dia)
 
   for (const u of unidades) {
     const unidadeId = u.id

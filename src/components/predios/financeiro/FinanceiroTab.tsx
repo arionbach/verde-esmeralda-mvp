@@ -26,6 +26,74 @@ function fmtBRL(n: number) {
   }
 }
 
+type FechamentoSectionProps = {
+  predioId: string
+  competencia: string
+  statusComp: CompetenciaStatus
+  setStatusComp: (s: CompetenciaStatus) => void
+}
+
+function FechamentoSection({ predioId, competencia, statusComp, setStatusComp }: FechamentoSectionProps) {
+  const [loading, setLoading] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+
+  async function toggleStatus() {
+    const novoStatus = statusComp === 'FECHADA' ? 'ABERTA' : 'FECHADA'
+    const acao = novoStatus === 'FECHADA' ? 'fechar' : 'abrir'
+    const ok = window.confirm(`Deseja ${acao} a competência ${competencia}?`)
+    if (!ok) return
+
+    setLoading(true)
+    setMsg(null)
+    try {
+      const res = await fetch(
+        `/api/predios/${predioId}/financeiro/competencia/fechar?competencia=${encodeURIComponent(competencia)}&status=${novoStatus}`,
+        { method: 'POST' }
+      )
+      const j = await res.json().catch(() => null)
+      if (!res.ok) {
+        setMsg(j?.error || `Falha ao ${acao} competência`)
+        return
+      }
+      setStatusComp(novoStatus)
+      setMsg(`Competência ${novoStatus === 'FECHADA' ? 'fechada' : 'reaberta'} com sucesso.`)
+    } catch {
+      setMsg(`Erro ao ${acao} competência`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (statusComp === 'DESCONHECIDA') return null
+
+  return (
+    <div className="border rounded p-4 bg-gray-50 space-y-2">
+      <div className="flex items-center justify-between">
+        <div>
+          <h4 className="font-medium text-sm">Fechamento da Competência</h4>
+          <p className="text-xs text-gray-500">
+            {statusComp === 'FECHADA'
+              ? 'Competência fechada. Nenhuma alteração é permitida.'
+              : 'Competência aberta. Você pode fechar após validar os lançamentos.'}
+          </p>
+        </div>
+        <button
+          onClick={toggleStatus}
+          disabled={loading}
+          className={`px-3 py-2 rounded text-sm ${
+            statusComp === 'FECHADA'
+              ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+              : 'bg-red-600 text-white hover:bg-red-700'
+          } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {loading ? 'Processando...' : statusComp === 'FECHADA' ? 'Reabrir competência' : 'Fechar competência'}
+        </button>
+      </div>
+      {msg && <p className="text-xs mt-1">{msg}</p>}
+    </div>
+  )
+}
+
 export default function FinanceiroTab({ predioId }: Props) {
   const search = useSearchParams()
   const router = useRouter()

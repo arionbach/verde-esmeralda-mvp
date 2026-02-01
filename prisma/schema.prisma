@@ -115,7 +115,7 @@ model Pagamento {
   // agora opcional para suportar despesas fixas no nível do prédio
   unidadeId    String?
   manutencaoId String?
-  competencia  DateTime?
+  competencia  DateTime  // ADR-002: competência é obrigatória
   tipo         PagamentoTipo
   status       PagamentoStatus @default(PENDENTE)
 
@@ -246,7 +246,7 @@ model DespesaFixa {
   nome      String
   categoria String
   valor     Decimal     @db.Decimal(14, 2)
-  diaVencimento Int?
+  diaVencimento Int    @default(10) // ADR: obrigatório, range 1-28
   rateio    RegraRateio @default(IGUAL)
   inicio    DateTime    @map("competenciaInicio")
   fim       DateTime?   @map("competenciaFim")
@@ -307,6 +307,8 @@ model AjusteUnidade {
 
   @@index([predioId, competencia])
   @@index([unidadeId, competencia])
+  // ADR-004: índice único para idempotência (apenas quando tipoPolitica definido)
+  // Implementado via migration SQL com índice parcial (WHERE tipoPolitica IS NOT NULL)
 }
 
 model RateioItem {

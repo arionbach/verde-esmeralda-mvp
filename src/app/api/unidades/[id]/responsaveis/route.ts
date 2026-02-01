@@ -79,6 +79,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     const data = CreateResponsavelSchema.parse(json)
 
     // Validação: apenas 1 titular por unidade
+    // 
     if (data.ehTitularCobranca) {
       const titular = await prisma.responsavel.findFirst({
         where: {

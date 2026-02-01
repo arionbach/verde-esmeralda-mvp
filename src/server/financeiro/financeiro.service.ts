@@ -14,9 +14,14 @@
 // - ADR‑007 é regra executável e deve ser respeitada por operações financeiras
 import { prisma } from '@/lib/prisma'
 import { PagamentoStatus, Prisma, PagamentoTipo, OrigemRateio, NaturezaLancamento } from '@prisma/client'
-import { startOfMonth, endOfMonth, parse } from 'date-fns'
+import { endOfMonth } from 'date-fns'
 import { PagamentoRepository } from '@/server/repositories/PagamentoRepository'
 import { isCompetenciaFechada } from '@/server/financeiro/competencia-status.service'
+import { 
+  parseCompetencia as parseCompetenciaLib, 
+  parseCompetenciaTolerant,
+  calcularVencimento 
+} from '@/lib/competencia'
 
 export type FinanceiroStatusUI = 'PENDENTE' | 'ATRASADO' | 'PAGO'
 
@@ -26,36 +31,9 @@ export function isVencido(status: PagamentoStatus | string, vencimento: Date, ag
   return String(status) === 'PENDENTE' && vencimento < agora
 }
 
-export function parseCompetencia(competencia: string) {
-  // aceita 'YYYY-MM' ou datas que comecem com esse formato
-  const base = competencia?.slice(0, 7)
-  const comp = parse(base, 'yyyy-MM', new Date())
-  if (isNaN(comp.getTime())) {
-    throw new Error('Competência inválida. Use YYYY-MM')
-  }
-  return {
-    competenciaStr: base,
-    inicio: startOfMonth(comp),
-    fim: endOfMonth(comp),
-  }
-}
-
-// Versão estrita: exige formato exato 'YYYY-MM'
-export function parseCompetenciaStrict(competencia: string) {
-  const base = competencia?.slice(0, 7)
-  if (!/^\d{4}-\d{2}$/.test(base || '')) {
-    throw new Error('Competência inválida. Use YYYY-MM')
-  }
-  const comp = parse(base, 'yyyy-MM', new Date())
-  if (isNaN(comp.getTime())) {
-    throw new Error('Competência inválida. Use YYYY-MM')
-  }
-  return {
-    competenciaStr: base,
-    inicio: startOfMonth(comp),
-    fim: endOfMonth(comp),
-  }
-}
+// Re-export do helper consolidado para manter compatibilidade
+export const parseCompetencia = parseCompetenciaTolerant
+export const parseCompetenciaStrict = parseCompetenciaLib
 
 export async function gerarMensalidades(
   predioId: string,
@@ -396,7 +374,8 @@ export async function getPagamentos(
 
   const hoje = new Date()
 
-  const rows = await PagamentoRepository.findMany({
+  // Usa prisma diretamente para preservar tipos de include
+  const rows = await prisma.pagamento.findMany({
     where: {
       predioId,
       competencia: { gte: inicio, lte: fim },

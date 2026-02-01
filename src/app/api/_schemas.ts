@@ -225,25 +225,79 @@ export type DespesaFixaUpdateInput = z.infer<typeof DespesaFixaUpdateSchema>
 // ============= VALIDADORES ÚTEIS =============
 
 /**
- * Valida CPF
+ * Valida CPF com algoritmo completo (dígitos verificadores)
  */
 export function isValidCPF(cpf: string): boolean {
   const cleaned = cpf.replace(/\D/g, '')
   if (cleaned.length !== 11) return false
   
-  // Validação simplificada - implementar algoritmo completo em produção
+  // Rejeita CPFs com todos dígitos iguais (ex: 111.111.111-11)
+  if (/^(\d)\1{10}$/.test(cleaned)) return false
+  
+  // Calcula primeiro dígito verificador
+  let sum = 0
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cleaned[i]) * (10 - i)
+  }
+  let remainder = (sum * 10) % 11
+  if (remainder === 10 || remainder === 11) remainder = 0
+  if (remainder !== parseInt(cleaned[9])) return false
+  
+  // Calcula segundo dígito verificador
+  sum = 0
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cleaned[i]) * (11 - i)
+  }
+  remainder = (sum * 10) % 11
+  if (remainder === 10 || remainder === 11) remainder = 0
+  if (remainder !== parseInt(cleaned[10])) return false
+  
   return true
 }
 
 /**
- * Valida CNPJ
+ * Valida CNPJ com algoritmo completo (dígitos verificadores)
  */
 export function isValidCNPJ(cnpj: string): boolean {
   const cleaned = cnpj.replace(/\D/g, '')
   if (cleaned.length !== 14) return false
   
-  // Validação simplificada - implementar algoritmo completo em produção
+  // Rejeita CNPJs com todos dígitos iguais
+  if (/^(\d)\1{13}$/.test(cleaned)) return false
+  
+  // Pesos para cálculo dos dígitos verificadores
+  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+  
+  // Calcula primeiro dígito verificador
+  let sum = 0
+  for (let i = 0; i < 12; i++) {
+    sum += parseInt(cleaned[i]) * weights1[i]
+  }
+  let remainder = sum % 11
+  const digit1 = remainder < 2 ? 0 : 11 - remainder
+  if (digit1 !== parseInt(cleaned[12])) return false
+  
+  // Calcula segundo dígito verificador
+  sum = 0
+  for (let i = 0; i < 13; i++) {
+    sum += parseInt(cleaned[i]) * weights2[i]
+  }
+  remainder = sum % 11
+  const digit2 = remainder < 2 ? 0 : 11 - remainder
+  if (digit2 !== parseInt(cleaned[13])) return false
+  
   return true
+}
+
+/**
+ * Valida CPF ou CNPJ automaticamente pelo tamanho
+ */
+export function isValidCpfCnpj(value: string): boolean {
+  const cleaned = value.replace(/\D/g, '')
+  if (cleaned.length === 11) return isValidCPF(cleaned)
+  if (cleaned.length === 14) return isValidCNPJ(cleaned)
+  return false
 }
 
 /**

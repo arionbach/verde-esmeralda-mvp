@@ -6,11 +6,11 @@ import { ok, bad, handlePrismaError } from '@/app/api/_utils'
 import { parseCompetenciaYYMM } from '@/server/financeiro/gerador-pagamentos.service'
 import { isCompetenciaFechada } from '@/server/financeiro/competencia-status.service'
 
-type Ctx = { params: { id: string } }
+type Ctx = { params: Promise<{ id: string }> }
 
 export async function GET(req: NextRequest, { params }: Ctx) {
   try {
-    const { id: predioId } = params
+    const { id: predioId } = await params
     const competenciaStrParam = new URL(req.url).searchParams.get('competencia') || ''
     if (!competenciaStrParam || competenciaStrParam.length < 7) return bad('Competência inválida (YYYY-MM)')
     const { inicio, competenciaStr } = parseCompetenciaYYMM(competenciaStrParam)

@@ -67,10 +67,10 @@ export async function getConsolidacaoFinanceiraPredio(
     },
   })
 
-  const receitaPrevista = Number(agg._sum.valor ?? 0)
-  const receitaRealizada = Number(aggRealizada._sum.valor ?? 0)
-  const receitaEmAberto = Number(aggEmAberto._sum.valor ?? 0)
-  const receitaAtrasada = Number(aggAtrasada._sum.valor ?? 0)
+  const receitaPrevista = Number(agg._sum?.valor ?? 0)
+  const receitaRealizada = Number(aggRealizada._sum?.valor ?? 0)
+  const receitaEmAberto = Number(aggEmAberto._sum?.valor ?? 0)
+  const receitaAtrasada = Number(aggAtrasada._sum?.valor ?? 0)
 
   return { competencia: inicio, receitaPrevista, receitaRealizada, receitaEmAberto, receitaAtrasada }
 }

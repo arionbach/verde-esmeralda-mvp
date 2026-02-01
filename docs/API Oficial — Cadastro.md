@@ -63,3 +63,5 @@ As rotas abaixo **não são mais oficiais**. Devem **logar uso** e serão removi
 
 * **Multi-tenant**: adicionar `administradoraId` em `Predio` para suportar múltiplas administradoras.
 * **Soft delete** como padrão para entidades de cadastro, evitando hard delete sempre que possível.
+
+
